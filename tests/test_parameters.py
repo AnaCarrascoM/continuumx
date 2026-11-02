@@ -5,6 +5,8 @@ forms for trees and cycles, and against the structural relations that hold in
 any metric space.
 """
 
+from fractions import Fraction as F
+
 import networkx as nx
 import pytest
 
@@ -58,6 +60,28 @@ def test_farthest_point_on_edge_attains_the_relative_eccentricity(seed):
             assert cx.distance(G, p, q) == pytest.approx(
                 cx.eccentricity_to_edge(G, p, u, v), abs=1e-9
             )
+
+
+@pytest.mark.parametrize(
+    "theta, farthest",
+    [
+        (F(1, 10), cx.Point("a", "b", F(4, 5))),  # theta <= 1 - beta: theta + beta
+        (F(9, 10), cx.Point("a", "b", F(1, 5))),  # theta >= beta: theta - beta
+        (F(2, 5), cx.Point.at_vertex("b")),  # in between: the far endpoint
+        (F(3, 5), cx.Point.at_vertex("a")),
+    ],
+)
+def test_farthest_point_on_the_same_edge(theta, farthest):
+    """The valley (4.14) on the triangle with ℓ(ab) = 5 and d(a, b) = 2, where
+    β = (5 + 2) / 10 = 7/10."""
+    g = nx.Graph()
+    for u, v, ell in [("a", "b", 5), ("a", "c", 1), ("c", "b", 1)]:
+        g.add_edge(u, v, length=F(ell))
+    G = cx.ContinuousGraph(g, tol=0)
+    p = cx.Point("a", "b", theta)
+    q = cx.farthest_point_on_edge(G, p, "a", "b")
+    assert q == farthest
+    assert cx.distance(G, p, q) == cx.eccentricity_to_edge(G, p, "a", "b")
 
 
 def test_eccentricity_of_a_vertex_can_exceed_the_discrete_one():
