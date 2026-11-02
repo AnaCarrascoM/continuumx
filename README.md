@@ -1,5 +1,7 @@
 # continuumx
 
+[![tests](https://github.com/AnaCarrascoM/continuumx/actions/workflows/tests.yml/badge.svg)](https://github.com/AnaCarrascoM/continuumx/actions/workflows/tests.yml)
+
 `continuumx` is a Python library for **continuous graphs**, built on top of
 [NetworkX](https://networkx.org/). In a combinatorial graph, distances are
 measured only between vertices. In a continuous graph, each edge is identified
