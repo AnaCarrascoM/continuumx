@@ -44,6 +44,13 @@ The package namespace already says "continuous", so the parameters keep their
 `networkx` names: comparing the two settings is `nx.diameter(g)` against
 `cx.diameter(g)`.
 
+## Examples
+
+[`examples/emergency_network.ipynb`](examples/emergency_network.ipynb) walks
+through the package on the weighted emergency network, following Chapter 5 of
+the thesis: distances, eccentricity, diameter, radius and center, and how the
+continuous center differs from the discrete one.
+
 ## What it computes
 
 | Function | Returns | Complexity |
@@ -124,6 +131,7 @@ continuumx/
   structures/   PiecewiseLinear, HatFunction, upper_envelope — the computational core
   algorithms/   distance, eccentricity, diameter, radius, center, families
 tests/          pytest suite, mirrors the package layout
+examples/       notebooks walking through the package
 ```
 
 ## Testing
