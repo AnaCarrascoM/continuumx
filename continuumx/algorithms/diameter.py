@@ -61,8 +61,16 @@ def diameter(G, *, length: str = "length"):
 def diametral_pair(G, *, length: str = "length") -> Optional[Tuple[Point, Point]]:
     """Return one diametral pair (p, q), i.e. with ``distance(p, q) == diameter``.
 
-    In general there are infinitely many; this returns one witness.  Returns a
-    pair of copies of the only vertex when the graph has no edges.
+    In general there are infinitely many; this returns one witness, as in
+    Step 3 of the diameter algorithm of Chen and Garfinkel.  Let uv be the edge
+    and wz the witness edge of the highest hat.  The first point x* is the
+    point of uv of parameter θ* = b_wz, the left end of the plateau, where the
+    hat attains its ceiling; the second is the point of wz farthest from x*.
+    For n ≥ 3, the pairs (uv, uv) are omitted, since for every edge uv there
+    is a distinct edge vw with d_max(uv, uv) ≤ d_max(uv, vw); this also keeps
+    :func:`farthest_point_on_edge` within the hypotheses of the lemma it
+    implements (x* not interior to wz).  Returns a pair of copies of the only
+    vertex when the graph has no edges.
 
     Examples
     --------
@@ -78,14 +86,16 @@ def diametral_pair(G, *, length: str = "length") -> Optional[Tuple[Point, Point]
         return (w, w)
     G.precompute()
 
+    skip_same_edge = G.number_of_nodes() >= 3
     best = None
     for u, v in G.edges:
         for hat, witness in hat_functions(G, u, v):
+            if skip_same_edge and set(witness) == {u, v}:
+                continue                        # pairs (uv, uv) are omitted
             if best is None or hat.h > best[0]:
                 best = (hat.h, u, v, hat, witness)
 
     _, u, v, hat, witness = best
-    theta = (hat.b + hat.s) / 2
-    p = Point(u, v, theta)
+    p = Point(u, v, hat.b)                      # theta* = b_wz
     q = farthest_point_on_edge(G, p, witness[0], witness[1])
     return (p, q)

@@ -62,7 +62,7 @@ def test_single_vertex_graph_has_trivial_parameters():
     G = cx.ContinuousGraph(g)
     assert cx.diameter(G) == 0.0
     assert cx.radius(G) == 0.0
-    assert cx.center(G) == [cx.Segment("solo", "solo", 0.0, 0.0)]
+    assert cx.center(G) == [cx.Point.at_vertex("solo")]
     assert cx.diametral_pair(G) == (cx.Point.at_vertex("solo"),) * 2
 
 

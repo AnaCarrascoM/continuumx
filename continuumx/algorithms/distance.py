@@ -21,18 +21,18 @@ def distance_to_vertex(G, p: Point, w: Hashable, *, length: str = "length"):
     """Return d_𝒢(p, w) for a point ``p`` and a vertex ``w``.
 
     A shortest path leaves the edge uv containing ``p`` through ``u`` or
-    through ``v``, so
+    through ``v``, so, with θ the parameter of ``p`` (formula (4.2)),
 
-        d_𝒢(p, w) = min( λ + d_G(u, w),  (ℓ(uv) - λ) + d_G(v, w) ).
+        d_𝒢(p, w) = min( θ ℓ(uv) + d_G(u, w),  (1 - θ) ℓ(uv) + d_G(v, w) ).
     """
     G = as_continuous(G, length=length)
     G.check_point(p)
     if p.is_vertex:
         return G.vertex_distance(p.u, w)
-    u, v = p.u, p.v
-    ell = G.edge_length(u, v)
-    lam = p.theta * ell
-    return min(lam + G.vertex_distance(u, w), (ell - lam) + G.vertex_distance(v, w))
+    u, v, theta = p.u, p.v, p.theta
+    l_uv = G.edge_length(u, v)
+    return min(theta * l_uv + G.vertex_distance(u, w),
+               (1 - theta) * l_uv + G.vertex_distance(v, w))
 
 
 def distance(G, p: Point, q: Point, *, length: str = "length"):
@@ -47,24 +47,25 @@ def distance(G, p: Point, q: Point, *, length: str = "length"):
 
     Notes
     -----
-    Three cases arise.
+    Write θ for the parameter of ``p`` on uv and μ for that of ``q`` on wz.
+    Three cases arise, those of Proposition 4.1.
 
     *One of the points is a vertex.*  Handled by :func:`distance_to_vertex`.
 
-    *The points lie on different edges* uv and rs.  A path leaves uv through
-    ``u`` or ``v`` and enters rs through ``r`` or ``s``, giving the minimum of
-    four expressions.
+    *The points lie on different edges* uv and wz.  A path leaves uv through
+    ``u`` or ``v`` and enters wz through ``w`` or ``z``, giving the minimum of
+    the four expressions of (4.5).
 
     *The points lie on the same edge* uv.  It is **not** enough to take
-    |λ_p - λ_q|: a path may leave the edge through one endpoint and come back
-    through the other, which is shorter whenever the edge is long compared with
-    the rest of the graph.  For example, on the triangle with ℓ(ab) = 5 and a
-    path a c b of total length 2, the points of ab at distance 0.1 from a and
-    0.1 from b are at distance 2.2, not 4.8.  The correct expression is
+    (μ - θ) ℓ(uv): a path may leave the edge through one endpoint and come
+    back through the other, which is shorter whenever the edge is long
+    compared with the rest of the graph.  For example, on the triangle with
+    ℓ(ab) = 5 and a path a c b of total length 2, the points of ab at distance
+    0.1 from a and 0.1 from b are at distance 2.2, not 4.8.  Ordering the
+    parameters so that θ ≤ μ, the correct expression is (4.4):
 
-        d_𝒢(p, q) = min( |λ_p - λ_q|,
-                         λ_p + d_G(u, v) + (ℓ - λ_q),
-                         (ℓ - λ_p) + d_G(u, v) + λ_q ).
+        d_𝒢(p, q) = min( (μ - θ) ℓ(uv),
+                         θ ℓ(uv) + d_G(u, v) + (1 - μ) ℓ(uv) ).
 
     Using d_G(u, v) rather than the distance in G - uv is safe: each expression
     is the length of an actual walk, so none can undercut the true distance,
@@ -97,26 +98,19 @@ def distance(G, p: Point, q: Point, *, length: str = "length"):
     if p.is_vertex:
         return distance_to_vertex(G, q, p.u)
 
-    u, v = p.u, p.v
-    r, s = q.u, q.v
-    ell_p = G.edge_length(u, v)
-    ell_q = G.edge_length(r, s)
-    lam_p = p.theta * ell_p
-    lam_q = q.theta * ell_q
+    (u, v), (w, z) = (p.u, p.v), (q.u, q.v)
+    l_uv, l_wz = G.edge_length(u, v), G.edge_length(w, z)
+    theta, mu = p.theta, q.theta
+    d = G.vertex_distance                       # d_G, by Dijkstra
 
-    if (u, v) == (r, s):
-        # Same edge: stay inside, or leave through one endpoint and return
-        # through the other.
-        d_uv = G.vertex_distance(u, v)
-        return min(
-            abs(lam_p - lam_q),
-            lam_p + d_uv + (ell_q - lam_q),
-            (ell_p - lam_p) + d_uv + lam_q,
-        )
+    if (u, v) == (w, z):
+        # Same edge (4.4): stay inside, or leave through the endpoint nearer
+        # to one point and come back through the other endpoint.
+        theta, mu = min(theta, mu), max(theta, mu)
+        return min((mu - theta) * l_uv,
+                   theta * l_uv + d(u, v) + (1 - mu) * l_uv)
 
-    return min(
-        lam_p + G.vertex_distance(u, r) + lam_q,
-        lam_p + G.vertex_distance(u, s) + (ell_q - lam_q),
-        (ell_p - lam_p) + G.vertex_distance(v, r) + lam_q,
-        (ell_p - lam_p) + G.vertex_distance(v, s) + (ell_q - lam_q),
-    )
+    return min(theta * l_uv + d(u, w) + mu * l_wz,          # different edges (4.5)
+               theta * l_uv + d(u, z) + (1 - mu) * l_wz,
+               (1 - theta) * l_uv + d(v, w) + mu * l_wz,
+               (1 - theta) * l_uv + d(v, z) + (1 - mu) * l_wz)

@@ -3,8 +3,9 @@
 A *continuous graph* is a connected graph whose edges are read as segments of
 prescribed length, so that distances are defined between **any** two points of
 the network and not only between its vertices.  This package implements the
-constructions and algorithms of the master's thesis *Metric Parameters of
-Continuous Graphs* (A. Carrasco Martín, Universidad de Sevilla).
+constructions and algorithms of the master's thesis *Computing Distances in
+Combinatorial and Continuous Graphs* (A. Carrasco Martín, Universidad de
+Sevilla).
 
 Quick start
 -----------
@@ -23,7 +24,7 @@ Quick start
 3.5
 >>> cx.radius(G)                 # a cycle: every point has the same eccentricity
 3.5
->>> cx.center(G)                 # ... so the centre is the whole graph
+>>> cx.center(G)                 # ... so the center is the whole graph
 [Segment('a', 'b', 0.0, 1.0), Segment('a', 'c', 0.0, 1.0), Segment('b', 'c', 0.0, 1.0)]
 
 Naming
@@ -111,13 +112,3 @@ __all__ = [
     "InvalidPointError",
     "__version__",
 ]
-
-
-def draw(*args, **kwargs):
-    """Draw a continuous graph; see :func:`continuumx.drawing.draw.draw`.
-
-    Imported lazily so that ``matplotlib`` stays an optional dependency.
-    """
-    from continuumx.drawing.draw import draw as _draw
-
-    return _draw(*args, **kwargs)

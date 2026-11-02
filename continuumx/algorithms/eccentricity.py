@@ -11,7 +11,7 @@ maximum over the m edges.
 Reading the eccentricity as a function of the position of p along a fixed edge
 gives the hat functions of
 :mod:`continuumx.structures.piecewise`, from which the diameter, the radius and
-the centre all follow.
+the center all follow.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ def eccentricity_to_edge(G, p: Point, u: Hashable, v: Hashable, *,
                          length: str = "length"):
     """Return ecc(p, uv) = max_{q ∈ uv} d(p, q).
 
-    Two cases, following Theorem 4.x of the thesis.
+    Two cases, following Lemma 4.2 and Theorem 4.1 (2) of the thesis.
 
     *The point is not interior to* uv.  The farthest point of the edge is the
     one at which the two ways in — through u and through v — cost the same, so
@@ -81,13 +81,14 @@ def farthest_point_on_edge(G, p: Point, u: Hashable, v: Hashable, *,
     one = zero + 1        # so that Fraction inputs never meet a float
 
     if (not p.is_vertex) and (p.u, p.v) == (a, b):
-        D = G.vertex_distance(a, b)
-        lam = p.theta * ell
-        if lam <= (ell - D) / 2:
-            return Point(a, b, (lam + (ell + D) / 2) / ell)
-        if lam >= (ell + D) / 2:
-            return Point(a, b, (lam - (ell + D) / 2) / ell)
-        return Point.at_vertex(b if ell - lam >= lam else a)
+        # The valley (4.14), with β = (ℓ(uv) + d_G(u, v)) / (2 ℓ(uv)).
+        beta = (ell + G.vertex_distance(a, b)) / (2 * ell)
+        theta = p.theta
+        if theta <= 1 - beta:
+            return Point(a, b, min(theta + beta, one))    # guard against rounding
+        if theta >= beta:
+            return Point(a, b, max(theta - beta, zero))
+        return Point.at_vertex(b if 1 - theta >= theta else a)
 
     d_a = distance_to_vertex(G, p, a)
     d_b = distance_to_vertex(G, p, b)
@@ -142,7 +143,7 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
 
     For e' = uv, the remoteness is the valley of :func:`eccentricity_to_edge`,
     which is the upper envelope of the two degenerate hats with ceiling
-    (ℓ(uv) + d_G(u, v)) / 2 and plateaus [0, θ_v] and [θ_u, 1].  Modelling it
+    (ℓ(uv) + d_G(u, v)) / 2 and plateaus [0, θ_v] and [θ_u, 1].  Modeling it
     this way keeps a single code path downstream.
     """
     G = as_continuous(G, length=length)
@@ -185,13 +186,14 @@ def eccentricity_function(G, u: Hashable, v: Hashable, *,
     """Return θ ↦ ecc(x_θ) along the edge ``uv``.
 
     The result is the upper envelope of the m+1 hat functions of the
-    edge.  It is the object the local radius and local centre are read off, and
+    edge.  It is the object the local radius and local center are read off, and
     it is also what to plot when illustrating the eccentricity profile of an
     edge.
 
     Complexity
     ----------
-    O(m log m) once the discrete distances are available.
+    O(m²) once the discrete distances are available: m+1 insertions into
+    the envelope, each O(m) (see :func:`~continuumx.upper_envelope`).
 
     Examples
     --------

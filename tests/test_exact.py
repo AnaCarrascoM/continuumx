@@ -12,6 +12,7 @@ import networkx as nx
 import pytest
 
 import continuumx as cx
+from conftest import as_interval
 
 
 def _graph(edges):
@@ -59,10 +60,9 @@ def test_logistics_example_is_exact(logistics):
     G = logistics
     assert cx.diameter(G) == F(75, 2) and _is_exact(cx.diameter(G))
     assert cx.radius(G) == F(75, 4) and _is_exact(cx.radius(G))
-    (seg,) = cx.center(G)
-    assert (seg.u, seg.v) == ("a", "d")
-    assert seg.theta_min == seg.theta_max == F(1, 4)
-    assert _is_exact(seg.theta_min)
+    (c,) = cx.center(G)
+    assert c == cx.Point("a", "d", F(1, 4))
+    assert _is_exact(c.theta)
 
 
 def test_diametral_pair_and_farthest_point_are_exact(logistics):
@@ -113,5 +113,6 @@ def test_fraction_and_float_runs_agree():
         assert float(cx.diameter(Gf)) == pytest.approx(cx.diameter(Gx))
         assert float(cx.radius(Gf)) == pytest.approx(cx.radius(Gx))
         assert _is_exact(cx.diameter(Gf)) and _is_exact(cx.radius(Gf))
-        for s in cx.center(Gf):
-            assert _is_exact(s.theta_min) and _is_exact(s.theta_max)
+        for x in cx.center(Gf):
+            _, _, lo, hi = as_interval(x)
+            assert _is_exact(lo) and _is_exact(hi)

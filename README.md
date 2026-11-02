@@ -6,15 +6,16 @@ between vertices, a continuous graph reads every edge as a segment of
 prescribed length, so distances are defined between *any* two points of the
 network — not just its vertices.
 
-It implements the constructions and algorithms of the master's thesis *Metric
-Parameters of Continuous Graphs* (A. Carrasco Martín, Universidad de Sevilla).
+It implements the constructions and algorithms of the master's thesis
+*Computing Distances in Combinatorial and Continuous Graphs* (A. Carrasco
+Martín, Universidad de Sevilla).
 It is a **prototype**: version 0.1 covers distance, eccentricity, diameter,
-radius and centre, exactly and for arbitrary connected weighted graphs.
+radius and center, exactly and for arbitrary connected weighted graphs.
 
 ## Installation
 
 ```bash
-pip install -e ".[dev,drawing]"
+pip install -e ".[dev]"
 ```
 
 ## Quick start
@@ -50,16 +51,22 @@ The package namespace already says "continuous", so the parameters keep their
 | `distance(G, p, q)` | `d(p, q)` between two points | `O(1)` after the shortest paths |
 | `eccentricity_to_edge(G, p, u, v)` | `max` distance from `p` to an edge | `O(1)` |
 | `eccentricity(G, p)` | `ecc(p)` | `O(m)` |
-| `eccentricity_function(G, u, v)` | `θ ↦ ecc(x_θ)` as a piecewise-linear function | `O(m log m)` |
+| `eccentricity_function(G, u, v)` | `θ ↦ ecc(x_θ)` as a piecewise-linear function | `O(m²)` |
 | `diameter(G)`, `diametral_pair(G)` | the diameter and one witness pair | `O(nm log n + m²)` |
-| `local_radius(G, u, v)`, `local_center(G, u, v)` | the LCR and LCC of one edge | `O(m log m)` |
-| `radius(G)`, `center(G)` | the radius and the centre | `O(nm log n + m² log m)` |
-| `tree_*`, `cycle_*` | closed forms for trees and cycles | linear |
+| `local_radius(G, u, v)`, `local_center(G, u, v)` | the LCR and LCC of one edge | `O(m²)` |
+| `radius(G)`, `center(G)` | the radius and the center | `O(nm log n + m³)` |
+| `tree_*`, `cycle_*` | closed forms for trees and cycles | `O(n)` |
 
-The centre and the sets of central points are returned as lists of
-`Segment` objects: unlike the discrete centre, the continuous centre is in
-general infinite (on a cycle it is the whole graph) and need not contain a
-vertex.
+`O(nm log n)` is the cost of the shortest paths between vertices (Dijkstra from
+every vertex), computed once and cached; the per-edge costs assume they are
+available.  The upper envelope is stored in a Python list, which is copied at
+each insertion, so an envelope costs `O(m²)` rather than the `O(m log m)` that
+an ordered structure (a 2–3 tree, as in Hansen, Labbé and Nicolas) would give.
+
+The center is returned as a list whose elements are either a `Point`, an
+isolated central point, or a `Segment`, a stretch of an edge made of central
+points: unlike the discrete center, the continuous center is in general
+infinite (on a cycle it is the whole graph) and need not contain a vertex.
 
 ## Design notes
 
@@ -71,24 +78,24 @@ a home for the shortest-path cache every continuous algorithm needs. Every
 function also accepts a plain `nx.Graph` and wraps it internally.
 
 **Points carry `θ`, not `λ`.** A point is a triple `(u, v, θ)` with
-`θ ∈ [0, 1]` measured from `u`. The normalised parameter is *intrinsic* — a
+`θ ∈ [0, 1]` measured from `u`. The normalized parameter is *intrinsic* — a
 triple can be validated without knowing the edge length — and it is the
-parametrisation the theory uses. The absolute offset is `G.offset(p)`. Points
-are normalised on construction, so `Point("b", "a", 0.25) == Point("a", "b",
+parametrization the theory uses. The absolute offset is `G.offset(p)`. Points
+are normalized on construction, so `Point("b", "a", 0.25) == Point("a", "b",
 0.75)` and `Point("a", "b", 0.0) == Point("a", "c", 0.0)`, and points are
 hashable.
 
 **One computational core.** Every parameter is a reading of the same object:
 the eccentricity along an edge is the upper envelope of `m + 1` *hat
 functions* (`continuumx.structures.piecewise`). The diameter is the largest
-ceiling; the radius is the smallest minimum; the centre is where those minima
+ceiling; the radius is the smallest minimum; the center is where those minima
 are attained. Adding a parameter means reading an envelope differently, not
 writing new formulas.
 
-**Exact arithmetic.** The core uses only `+`, `-`, `min`, `max` and division by
-2 — no `math`, no `numpy`. With `fractions.Fraction` edge lengths every
-computed parameter is an exact rational and `tol=0` is safe, which matters for
-the centre, whose structure is decided by equality tests.
+**Exact arithmetic.** The core uses only the four arithmetic operations, `min`
+and `max`, with no square roots or other functions. With `fractions.Fraction`
+edge lengths every computed parameter is an exact rational and `tol=0` is safe,
+which matters for the center, whose structure is decided by equality tests.
 
 **Deliberate restrictions in 0.1.** Multigraphs, self-loops and zero-length
 edges are rejected with an explicit error rather than mishandled silently.
@@ -116,7 +123,6 @@ continuumx/
   classes/      ContinuousGraph (an immutable view over nx.Graph), Point, Segment
   structures/   PiecewiseLinear, HatFunction, upper_envelope — the computational core
   algorithms/   distance, eccentricity, diameter, radius, center, families
-  drawing/      matplotlib rendering of points and segments
 tests/          pytest suite, mirrors the package layout
 ```
 
@@ -132,8 +138,8 @@ The suite validates the library three ways:
    plain `networkx` shortest paths are run on the result. Distances between
    sampled points are then exact, and the sampled diameter and radius bracket
    the true ones within `max_edge_length / k`.
-2. **Closed forms.** Trees (`diam(𝒯) = diam(T)`, `rad = diam/2`, centre a single
-   point) and cycles (`diam = rad = Per/2`, centre the whole graph).
+2. **Closed forms.** Trees (`diam(𝒯) = diam(T)`, `rad = diam/2`, center a single
+   point) and cycles (`diam = rad = Per/2`, center the whole graph).
 3. **Structural properties** on random graphs: the metric axioms,
    `rad ≤ diam ≤ 2·rad`, linear scaling under a change of unit, and
    **invariance under subdivision** — splitting an edge in two yields an

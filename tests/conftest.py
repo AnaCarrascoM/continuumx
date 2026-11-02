@@ -83,6 +83,17 @@ def random_graph(seed: int, n: int = 7, p: float = 0.35,
 RANDOM_SEEDS = list(range(12))
 
 
+def as_interval(x):
+    """Return ``(u, v, theta_min, theta_max)`` for an element of a center.
+
+    The center mixes :class:`continuumx.Point` (an isolated central point) and
+    :class:`continuumx.Segment`; a point is read as a degenerate interval.
+    """
+    if isinstance(x, cx.Point):
+        return x.u, x.v, x.theta, x.theta
+    return x.u, x.v, x.theta_min, x.theta_max
+
+
 @pytest.fixture
 def triangle_1_1_5() -> cx.ContinuousGraph:
     """The triangle with lengths 1, 1, 5: a continuous graph that is not geometric.
@@ -100,7 +111,7 @@ def triangle_1_1_5() -> cx.ContinuousGraph:
 
 @pytest.fixture
 def emergency_network() -> cx.ContinuousGraph:
-    """A weighted network whose continuous centre is a union of three sub-paths."""
+    """A weighted network whose continuous center is a union of three sub-paths."""
     g = nx.Graph()
     for u, v, ell in [
         ("a", "b", 2.0),
@@ -115,9 +126,9 @@ def emergency_network() -> cx.ContinuousGraph:
 
 @pytest.fixture
 def interior_center_network() -> cx.ContinuousGraph:
-    """A weighted network whose continuous centre is a single interior point.
+    """A weighted network whose continuous center is a single interior point.
 
-    It contains the cycle ``b c d e b`` and a pendant edge ``ab``; the centre
+    It contains the cycle ``b c d e b`` and a pendant edge ``ab``; the center
     lies on ``ab``, at distance 4.75 from ``a``, and no vertex attains the
     radius.  This is the situation the introduction illustrates with a rural
     road network.

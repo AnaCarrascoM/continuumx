@@ -305,10 +305,9 @@ class TestDiameter:
 
 def central_points(G):
     """The center as a list of points (every example below has finitely many)."""
-    pts = []
-    for seg in cx.center(G):
-        assert seg.is_point, f"expected an isolated point, got {seg}"
-        pts.append(seg.endpoints()[0])
+    pts = cx.center(G)
+    for x in pts:
+        assert isinstance(x, cx.Point), f"expected an isolated point, got {x}"
     return pts
 
 
@@ -372,6 +371,7 @@ class TestRadiusAndCenter:
         assert cx.radius(emergency) == F(7, 2)
         assert nx.radius(emergency.graph, weight="length") == 4
         assert set(nx.center(emergency.graph, weight="length")) == {"d", "e"}
+        assert cx.center(emergency) == [cx.Point("d", "e", F(1, 2))]   # as in Ch. 5
         (c,) = central_points(emergency)
         assert emergency.same_point(c, emergency.point("d", "e", theta=F(1, 2)))
         assert cx.diameter(emergency) == 2 * cx.radius(emergency) == 7
@@ -402,10 +402,10 @@ class TestBasicProperties:
         for v in "abcd":
             assert cx.eccentricity(k4, k4.point(v)) == F(3, 2)
         assert cx.radius(k4) == F(3, 2) and cx.diameter(k4) == 2
-        centre = central_points(k4)
-        assert len(centre) == 4
+        center = central_points(k4)
+        assert len(center) == 4
         for v in "abcd":
-            assert any(k4.same_point(c, k4.point(v)) for c in centre)
+            assert any(k4.same_point(c, k4.point(v)) for c in center)
 
     @pytest.mark.parametrize("theta", [F(0), F(1, 8), F(1, 4), F(1, 2)])
     def test_complete_graph_interior_point(self, k4, theta):
@@ -628,5 +628,5 @@ class TestCommentedOutExamples:
             assert f(theta) == max(4 - theta, 3 + theta)
         assert f.minimum() == (F(7, 2), [(F(1, 2), F(1, 2))])
         assert cx.local_radius(emergency, "d", "e") == F(7, 2)
-        assert [(s.theta_min, s.theta_max)
-                for s in cx.local_center(emergency, "d", "e")] == [(F(1, 2), F(1, 2))]
+        assert cx.local_center(emergency, "d", "e") == [
+            cx.Point("d", "e", F(1, 2))]

@@ -10,9 +10,9 @@ and the continuous radius of the graph is the smallest of them:
 
     rad(𝒢) = min { rad_c(uv) : uv ∈ E }.
 
-Each local problem is the minimisation of the upper envelope of the m+1 hat
+Each local problem is the minimization of the upper envelope of the m+1 hat
 functions of the edge, a piecewise-linear function on [0, 1], computed in
-O(m log m).
+O(m²) (see :func:`~continuumx.upper_envelope`).
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def local_radius(G, u: Hashable, v: Hashable, *, length: str = "length"):
 
     Complexity
     ----------
-    O(m log m) once the discrete distances are available.
+    O(m²) once the discrete distances are available.
 
     Examples
     --------
@@ -49,7 +49,7 @@ def radius(G, *, length: str = "length"):
 
     Complexity
     ----------
-    O(n m log n) for the all-pairs shortest paths plus O(m² log m) for the m
+    O(n m log n) for the all-pairs shortest paths plus O(m³) for the m
     local problems.
 
     Examples

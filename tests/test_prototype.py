@@ -11,7 +11,6 @@ so every comparison is an exact equality.
 from fractions import Fraction as F
 
 import networkx as nx
-import pytest
 
 import continuumx as cx
 
@@ -23,18 +22,14 @@ EDGES = [
     ("d", "e", 2),
 ]
 
-# positions of the vertices (this is just for drawing purposes)
-POS = {"a": (0, 0), "b": (5, 0), "c": (6, 1.5), "e": (6, -1.5), "d": (9, 0)}
 
-
-def test_full_session(tmp_path):
+def test_full_session():
     # ------------------------------------------------------------------
     # 1. Build the continuous graph.
     # ------------------------------------------------------------------
     g = nx.Graph() # start with an empty graph.
     for u, v, ell in EDGES: # add edges to the graph and their lengths
         g.add_edge(u, v, length=F(ell))
-    nx.set_node_attributes(g, POS, "pos") # set the positions of the vertices
     G = cx.ContinuousGraph(g, tol=0) # create a continuous graph with the given graph and tolerance
 
     assert G.number_of_nodes() == 5     # a,b,c,d,e
@@ -69,7 +64,7 @@ def test_full_session(tmp_path):
     q = G.point("c", "d", offset=F(4))
     assert cx.distance(G, p, q) == 5
 
-    # The two parametrisations name the same point, in either orientation.
+    # The two parametrizations name the same point, in either orientation.
     assert G.point("a", "b", theta=F(4, 5)) == p
     assert G.point("b", "a", offset=F(1)) == p
 
@@ -106,7 +101,7 @@ def test_full_session(tmp_path):
     # 6. Radius.
     # ------------------------------------------------------------------
     # A point at distance t from b on ab has eccentricity
-    # max(5 - t, t + 9/2), minimised at t = 1/4 with value 19/4.  The
+    # max(5 - t, t + 9/2), minimized at t = 1/4 with value 19/4.  The
     # discrete radius is ecc(b) = 5, attained only at b.
     rad = cx.radius(G)
     assert rad == F(19, 4)
@@ -114,12 +109,12 @@ def test_full_session(tmp_path):
     assert rad <= diam <= 2 * rad
 
     # ------------------------------------------------------------------
-    # 7. Centre.
+    # 7. Center.
     # ------------------------------------------------------------------
     # A single point interior to ab, 19/4 from a: no vertex is central.
-    centre = cx.center(G)
-    assert centre == [cx.Segment("a", "b", F(19, 20), F(19, 20))]
-    c, _ = centre[0].endpoints()
+    center = cx.center(G)
+    assert center == [cx.Point("a", "b", F(19, 20))]
+    (c,) = center
     assert not c.is_vertex
     assert G.offset(c) == F(19, 4)
     assert cx.eccentricity(G, c) == rad
@@ -132,36 +127,3 @@ def test_full_session(tmp_path):
     assert profile(0) == cx.eccentricity(G, G.point("a")) == diam
     assert profile(1) == cx.eccentricity(G, G.point("b")) == 5
     assert profile.minimum() == (rad, [(F(19, 20), F(19, 20))])
-
-    # ------------------------------------------------------------------
-    # 8. Plot: the graph with centre and diametral pair, and the profile.
-    # ------------------------------------------------------------------
-    matplotlib = pytest.importorskip("matplotlib")
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    fig, (ax_graph, ax_profile) = plt.subplots(1, 2, figsize=(11, 4))
-
-    from matplotlib.lines import Line2D
-
-    cx.draw(G, points=[p, q], segments=centre, ax=ax_graph,
-            node_color="#dddddd", point_color="#c1440e", segment_color="#1f6fb4")
-    ax_graph.legend(handles=[
-        Line2D([], [], marker="o", linestyle="", color="#1f6fb4", label="centre"),
-        Line2D([], [], marker="o", linestyle="", color="#c1440e", label="diametral pair"),
-    ], loc="lower left")
-    ax_graph.set_title("Continuous centre and diametral pair")
-
-    xs, ys = zip(*profile.points())
-    ax_profile.plot([float(x) for x in xs], [float(y) for y in ys], "-o")
-    ax_profile.axhline(float(rad), linestyle="--", color="grey",
-                       label=f"rad = {rad}")
-    ax_profile.set_xlabel(r"$\theta$ along ab (from a)")
-    ax_profile.set_ylabel(r"ecc$(x_\theta)$")
-    ax_profile.set_title("Eccentricity profile of ab")
-    ax_profile.legend()
-
-    out = tmp_path / "prototype.png"
-    fig.savefig(out, dpi=120, bbox_inches="tight")
-    plt.close(fig)
-    assert out.stat().st_size > 0

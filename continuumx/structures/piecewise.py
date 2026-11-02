@@ -9,9 +9,9 @@ available:
 
 * the diameter is the largest ceiling of any hat;
 * the eccentricity of a point is one evaluation;
-* the local radius and local centre of an edge are the minimum of an envelope
+* the local radius and local center of an edge are the minimum of an envelope
   and the set where it is attained;
-* the radius and the centre aggregate those over the edges.
+* the radius and the center aggregate those over the edges.
 
 Keeping this machinery in one place is what makes the library extensible: a new
 parameter is a new way of reading an envelope, not a new pile of formulas.
@@ -39,7 +39,7 @@ class HatFunction:
 
     Degenerate hats (``b == 0`` or ``s == 1``) describe the cases in which the
     plateau reaches an endpoint of the edge; they are not special-cased
-    anywhere, which is the reason for modelling the "valley" of the
+    anywhere, which is the reason for modeling the "valley" of the
     same-edge eccentricity as the envelope of two degenerate hats.
 
     Attributes
@@ -192,8 +192,12 @@ def upper_envelope(hats: Iterable[HatFunction]) -> PiecewiseLinear:
 
     Walking outwards from the plateau to find each crossing only ever visits
     breakpoints that are about to be deleted, plus one; since a breakpoint is
-    created once and deleted at most once, the total cost of the insertions is
-    O(k), and the running time is dominated by the initial sort, O(k log k).
+    created once and deleted at most once, the walks cost O(k) in total.
+    The breakpoints, however, are stored in a Python list, which is rebuilt at
+    each insertion: an insertion costs O(k), and the envelope of k hats
+    O(k²).  Storing them in an ordered structure with O(log k) insertion and
+    deletion, such as the 2–3 tree of the original algorithm, would bring the
+    total down to O(k log k), the cost of the initial sort.
 
     Raises
     ------

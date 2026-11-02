@@ -9,10 +9,10 @@ same point whenever
 and, in addition, every triple with λ ∈ {0, ℓ(uv)} describes a *vertex*, which
 is shared by all the edges incident to it.
 
-This module stores the **normalised** parameter θ = λ / ℓ(uv) ∈ [0, 1] rather
+This module stores the **normalized** parameter θ = λ / ℓ(uv) ∈ [0, 1] rather
 than λ, for two reasons:
 
-* it is the parametrisation used throughout the theory (hat functions,
+* it is the parametrization used throughout the theory (hat functions,
   eccentricity profiles), so code and formulas read alike;
 * it is *intrinsic*: a triple (u, v, θ) can be validated without knowing
   ℓ(uv), whereas (u, v, λ) cannot.
@@ -59,12 +59,12 @@ class Point:
         Endpoints of the edge containing the point.  Passing ``u == v``
         denotes the *vertex* ``u`` itself.
     theta : float
-        Normalised position along the edge, measured from ``u``:
+        Normalized position along the edge, measured from ``u``:
         ``theta == 0`` is ``u`` and ``theta == 1`` is ``v``.
 
     Notes
     -----
-    Instances are normalised on construction, so that structurally distinct
+    Instances are normalized on construction, so that structurally distinct
     triples describing the same point of 𝒢 compare equal and hash equally:
 
     * ``Point(v, u, t)`` becomes ``Point(u, v, 1 - t)`` for the canonical
@@ -72,7 +72,7 @@ class Point:
     * ``Point(u, v, 0)`` and ``Point(u, w, 0)`` both become ``Point(u, u, 0)``,
       the vertex ``u``.
 
-    Because the normalisation computes ``1 - theta``, exact equality of
+    Because the normalization computes ``1 - theta``, exact equality of
     ``float`` points is subject to the usual rounding: ``Point("b", "a", 0.3)``
     and ``Point("a", "b", 0.7)`` need not be identical bit for bit.  Use
     :meth:`~continuumx.classes.continuous_graph.ContinuousGraph.same_point` for
@@ -99,7 +99,7 @@ class Point:
         if theta < zero or theta > zero + 1:
             raise InvalidPointError(
                 f"theta must lie in [0, 1], got {theta!r}. "
-                "theta is the normalised position along the edge; use "
+                "theta is the normalized position along the edge; use "
                 "ContinuousGraph.point(u, v, offset=...) to build a point from "
                 "an absolute distance."
             )
@@ -144,7 +144,7 @@ class Point:
         """The edge containing the point, or ``None`` for a vertex.
 
         A vertex belongs to every incident edge, so no single edge can be
-        returned for it; that is why vertices are normalised to ``(w, w, 0)``.
+        returned for it; that is why vertices are normalized to ``(w, w, 0)``.
         """
         return None if self.is_vertex else (self.u, self.v)
 
@@ -158,7 +158,7 @@ class Point:
 class Segment:
     """A closed sub-segment of a single edge of a continuous graph.
 
-    Sets such as the continuous centre or the set of diametral points are in
+    Sets such as the continuous center or the set of diametral points are in
     general *infinite* — a union of sub-paths — so the library needs a type for
     them.  A :class:`Segment` is the portion of the edge ``uv`` between
     ``theta_min`` and ``theta_max``.  A degenerate segment
@@ -191,8 +191,8 @@ class Segment:
             object.__setattr__(self, "theta_max", zero)
             return
         if lo == hi:
-            # A degenerate segment is a point: reuse the point normalisation so
-            # that a centre reported at a vertex is the same object however it
+            # A degenerate segment is a point: reuse the point normalization so
+            # that a center reported at a vertex is the same object however it
             # was found.
             p = Point(self.u, self.v, lo)
             object.__setattr__(self, "u", p.u)

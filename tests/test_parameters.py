@@ -1,4 +1,4 @@
-"""Eccentricity, diameter, radius and centre.
+"""Eccentricity, diameter, radius and center.
 
 Cross-checked three ways: against the subdivision oracle, against the closed
 forms for trees and cycles, and against the structural relations that hold in
@@ -11,6 +11,7 @@ import pytest
 import continuumx as cx
 from conftest import (
     RANDOM_SEEDS,
+    as_interval,
     oracle_diameter,
     oracle_distances,
     oracle_radius,
@@ -85,7 +86,7 @@ def test_diameter_does_not_overestimate_a_long_edge(triangle_1_1_5):
 
 
 @pytest.mark.parametrize("seed", RANDOM_SEEDS[:8])
-def test_diametral_pair_realises_the_diameter(seed):
+def test_diametral_pair_realizes_the_diameter(seed):
     G = random_graph(seed)
     p, q = cx.diametral_pair(G)
     assert cx.distance(G, p, q) == pytest.approx(cx.diameter(G), abs=1e-9)
@@ -107,7 +108,7 @@ def test_cycle_diameter_is_half_the_perimeter(n):
 
 
 # ----------------------------------------------------------------------
-# Radius and centre
+# Radius and center
 # ----------------------------------------------------------------------
 
 @pytest.mark.parametrize("seed", RANDOM_SEEDS)
@@ -129,15 +130,15 @@ def test_radius_diameter_inequalities(seed):
 
 
 @pytest.mark.parametrize("seed", RANDOM_SEEDS)
-def test_centre_points_have_eccentricity_equal_to_the_radius(seed):
+def test_center_points_have_eccentricity_equal_to_the_radius(seed):
     G = random_graph(seed)
     rad = cx.radius(G)
-    segments = cx.center(G)
-    assert segments
-    for seg in segments:
-        for theta in (seg.theta_min, (seg.theta_min + seg.theta_max) / 2,
-                      seg.theta_max):
-            p = cx.Point(seg.u, seg.v, theta)
+    center = cx.center(G)
+    assert center
+    for x in center:
+        u, v, lo, hi = as_interval(x)
+        for theta in (lo, (lo + hi) / 2, hi):
+            p = cx.Point(u, v, theta)
             assert cx.eccentricity(G, p) == pytest.approx(rad, abs=1e-9)
 
 
@@ -151,17 +152,17 @@ def test_no_point_beats_the_radius(seed):
 
 
 @pytest.mark.parametrize("n", [2, 3, 4, 5, 8])
-def test_tree_radius_and_centre(n):
+def test_tree_radius_and_center(n):
     G = cx.ContinuousGraph(nx.path_graph(n))
     assert cx.radius(G) == pytest.approx(cx.diameter(G) / 2)
     assert cx.tree_radius(G) == pytest.approx(cx.radius(G))
-    segments = cx.center(G)
-    assert len(segments) == 1 and segments[0].is_point
-    assert segments[0].endpoints()[0] == cx.tree_center(G)
+    center = cx.center(G)
+    assert len(center) == 1 and isinstance(center[0], cx.Point)
+    assert center[0] == cx.tree_center(G)
 
 
 @pytest.mark.parametrize("n", [3, 4, 5, 6])
-def test_cycle_radius_and_centre(n):
+def test_cycle_radius_and_center(n):
     G = cx.ContinuousGraph(nx.cycle_graph(n))
     assert cx.radius(G) == pytest.approx(cx.diameter(G))
     segments = cx.center(G)
@@ -169,22 +170,20 @@ def test_cycle_radius_and_centre(n):
     assert all(seg.length_fraction == pytest.approx(1.0) for seg in segments)
 
 
-def test_centre_may_be_interior_to_an_edge(interior_center_network):
-    """Unlike the discrete centre, the continuous centre need not meet V."""
+def test_center_may_be_interior_to_an_edge(interior_center_network):
+    """Unlike the discrete center, the continuous center need not meet V."""
     G = interior_center_network
-    segments = cx.center(G)
-    assert len(segments) == 1
-    seg = segments[0]
-    assert seg.is_point and not seg.endpoints()[0].is_vertex
-    assert G.offset(seg.endpoints()[0]) == pytest.approx(4.75)
-    assert cx.eccentricity(G, seg.endpoints()[0]) == pytest.approx(cx.radius(G))
+    (c,) = cx.center(G)
+    assert isinstance(c, cx.Point) and not c.is_vertex
+    assert G.offset(c) == pytest.approx(4.75)
+    assert cx.eccentricity(G, c) == pytest.approx(cx.radius(G))
     assert all(
         cx.eccentricity(G, cx.Point.at_vertex(w)) > cx.radius(G) + 1e-9
         for w in G.nodes
     )
 
 
-def test_centre_may_be_a_union_of_subpaths(emergency_network):
+def test_center_may_be_a_union_of_subpaths(emergency_network):
     """It need not be finite either: here it is three sub-paths."""
     G = emergency_network
     segments = cx.center(G)
@@ -215,8 +214,9 @@ def test_local_radius_never_beats_the_global_one(emergency_network):
 def test_local_center_of_an_edge(emergency_network):
     G = emergency_network
     for u, v in G.edges:
-        for seg in cx.local_center(G, u, v):
-            p = seg.endpoints()[0]
+        for x in cx.local_center(G, u, v):
+            a, b, lo, _ = as_interval(x)
+            p = cx.Point(a, b, lo)
             assert cx.eccentricity(G, p) == pytest.approx(
                 cx.local_radius(G, u, v), abs=1e-9
             )

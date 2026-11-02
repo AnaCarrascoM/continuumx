@@ -69,12 +69,12 @@ class ContinuousGraph:
       branch, in exchange for no expressive power: contracting a zero-length
       edge yields an isometric continuous graph.
 
-    **Exact arithmetic.**  Every formula in the library uses only ``+``, ``-``,
-    ``min``, ``max`` and division by ``2``, and no ``math`` or ``numpy`` call.
-    Consequently, if the edge lengths are :class:`fractions.Fraction` objects,
-    all computed parameters are exact rationals and ``tol=0`` is safe.  This
-    matters most for the centre, whose combinatorial structure is decided by
-    equality tests between breakpoints.
+    **Exact arithmetic.**  Every formula in the library uses only the four
+    arithmetic operations, ``min`` and ``max``, with no square roots or other
+    functions.  Consequently, if the edge lengths are
+    :class:`fractions.Fraction` objects, all computed parameters are exact
+    rationals and ``tol=0`` is safe.  This matters most for the center, whose
+    combinatorial structure is decided by equality tests between breakpoints.
 
     Examples
     --------
@@ -269,7 +269,7 @@ class ContinuousGraph:
             Endpoints of the edge.  Omit ``v`` (or pass ``v == u``) for the
             vertex ``u``.
         theta : float, optional
-            Normalised position along ``uv``, measured from ``u``.
+            Normalized position along ``uv``, measured from ``u``.
         offset : float, optional
             Absolute distance from ``u`` along ``uv``; converted to ``theta``.
             Exactly one of ``theta`` and ``offset`` may be given.
@@ -335,7 +335,7 @@ class ContinuousGraph:
     def distances_from(self, source: Hashable) -> Dict[Hashable, float]:
         """Single-source shortest-path distances in G, cached.
 
-        The result is memoised, so repeated queries from the same source are
+        The result is memoized, so repeated queries from the same source are
         free.  Prefer this to :meth:`precompute` when only a few sources are
         needed: computing the full matrix eagerly costs O(n²) memory
         even for a single distance query.

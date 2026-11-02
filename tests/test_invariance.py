@@ -66,13 +66,11 @@ def test_exact_arithmetic_with_fractions():
     assert cx.distance(G, p, q) == Fraction(11, 5)
 
 
-def test_exact_centre_of_a_path():
+def test_exact_center_of_a_path():
     g = nx.path_graph(4)
     for u, v in g.edges():
         g[u][v]["length"] = Fraction(1)
     G = cx.ContinuousGraph(g, tol=0)
-    segments = cx.center(G)
-    assert len(segments) == 1
-    seg = segments[0]
-    assert seg.is_point and seg.theta_min == Fraction(1, 2)
+    (c,) = cx.center(G)
+    assert isinstance(c, cx.Point) and c.theta == Fraction(1, 2)
     assert cx.radius(G) == Fraction(3, 2)

@@ -1,13 +1,13 @@
-"""Closed forms and specialised algorithms for trees and cycles.
+"""Closed forms and specialized algorithms for trees and cycles.
 
 Two families admit an exact description of every metric parameter, and they
-realise the two extremes of rad ≤ diam ≤ 2 rad:
+realize the two extremes of rad ≤ diam ≤ 2 rad:
 
 * on a **tree**, the continuous diameter coincides with the discrete one, and
-  rad(𝒯) = diam(𝒯)/2, the centre being the midpoint of any diametral path (an
+  rad(𝒯) = diam(𝒯)/2, the center being the midpoint of any diametral path (an
   interior point of an edge in general);
 * on a **cycle**, every point has the same eccentricity, so
-  rad(𝒞) = diam(𝒞) = Per(𝒞)/2 and the centre is the whole graph.
+  rad(𝒞) = diam(𝒞) = Per(𝒞)/2 and the center is the whole graph.
 
 These functions are cheaper than the general algorithms, and they double as
 independent oracles for the test suite.
@@ -15,9 +15,8 @@ independent oracles for the test suite.
 
 from __future__ import annotations
 
-from typing import Hashable, List, Tuple
-
-import networkx as nx
+from collections import deque
+from typing import Any, Dict, Hashable, List, Optional, Tuple
 
 from continuumx.classes.continuous_graph import as_continuous
 from continuumx.classes.point import Point, Segment
@@ -48,14 +47,43 @@ def is_cycle(G, *, length: str = "length") -> bool:
     return all(deg == 2 for _, deg in G.graph.degree())
 
 
-def _double_sweep(G) -> Tuple[Hashable, Hashable, float]:
-    """Return ``(u, v, d(u, v))`` for a diametral pair of vertices of a tree."""
-    start = G.nodes[0]
-    d0 = G.distances_from(start)
+def _tree_distances(
+    G, source: Hashable
+) -> Tuple[Dict[Hashable, Any], Dict[Hashable, Optional[Hashable]]]:
+    """Distances from ``source`` in a tree, and the parent of each vertex. O(n).
+
+    In a tree the path between two vertices is unique, so a single traversal
+    (here, breadth-first) already yields the distances by adding up lengths
+    along it: no priority queue is needed.
+    """
+    ell = G.edge_length(*G.edges[0])
+    zero = ell - ell       # same numeric type as the lengths (exact for Fraction)
+    dist: Dict[Hashable, Any] = {source: zero}
+    parent: Dict[Hashable, Optional[Hashable]] = {source: None}
+    queue = deque([source])
+    while queue:
+        a = queue.popleft()
+        for b in G.graph.neighbors(a):
+            if b not in dist:
+                dist[b] = dist[a] + G.edge_length(a, b)
+                parent[b] = a
+                queue.append(b)
+    return dist, parent
+
+
+def _double_sweep(
+    G,
+) -> Tuple[Hashable, Hashable, Any, Dict[Hashable, Optional[Hashable]]]:
+    """Return ``(u, v, d(u, v), parent)`` for a diametral pair of a tree.
+
+    ``parent`` describes the traversal rooted at ``u``, so following it from
+    ``v`` walks back along the diametral path.
+    """
+    d0, _ = _tree_distances(G, G.nodes[0])
     u = max(d0, key=d0.__getitem__)
-    du = G.distances_from(u)
+    du, parent = _tree_distances(G, u)
     v = max(du, key=du.__getitem__)
-    return u, v, du[v]
+    return u, v, du[v], parent
 
 
 def tree_diameter(G, *, length: str = "length"):
@@ -63,11 +91,12 @@ def tree_diameter(G, *, length: str = "length"):
 
     On a tree the longest path joins two leaves, and no pair involving an
     interior point of an edge can beat it, so the continuous diameter equals
-    the discrete one.  It is found by two shortest-path traversals.
+    the discrete one.  It is found by two traversals of the tree.
 
     Complexity
     ----------
-    O(m log n) — two Dijkstra runs — against O(m²) for the general algorithm.
+    O(n) — two traversals of the tree — against O(m²) for the general
+    algorithm.
 
     Examples
     --------
@@ -90,11 +119,15 @@ def tree_radius(G, *, length: str = "length"):
 
 
 def tree_center(G, *, length: str = "length") -> Point:
-    """Return the continuous centre of a tree: the midpoint of a diametral path.
+    """Return the continuous center of a tree: the midpoint of a diametral path.
 
-    In the continuous setting the centre of a tree is always a **single**
+    In the continuous setting the center of a tree is always a **single**
     point; the parity obstruction of the discrete case, where an odd diameter
     forces two central vertices, disappears.
+
+    Complexity
+    ----------
+    O(n): two traversals of the tree, and a walk along the diametral path.
 
     Examples
     --------
@@ -112,8 +145,11 @@ def tree_center(G, *, length: str = "length") -> Point:
     if G.number_of_edges() == 0:
         return Point.at_vertex(G.nodes[0])
 
-    u, v, diam = _double_sweep(G)
-    path = nx.shortest_path(G.graph, u, v, weight=G.length_attr)
+    u, v, diam, parent = _double_sweep(G)
+    path = [v]
+    while path[-1] != u:
+        path.append(parent[path[-1]])
+    path.reverse()
     half = diam / 2
     walked = half - half   # same numeric type as the lengths (exact for Fraction)
     for a, b in zip(path, path[1:]):
@@ -146,7 +182,7 @@ def cycle_radius(G, *, length: str = "length"):
 
 
 def cycle_center(G, *, length: str = "length") -> List[Segment]:
-    """Return the continuous centre of a cycle: the whole graph."""
+    """Return the continuous center of a cycle: the whole graph."""
     G = as_continuous(G, length=length)
     if not is_cycle(G):
         raise ValueError("cycle_center requires a cycle")

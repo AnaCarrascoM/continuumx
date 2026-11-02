@@ -12,7 +12,7 @@ def test_reversed_triples_are_the_same_point():
     assert hash(cx.Point("b", "a", 0.25)) == hash(cx.Point("a", "b", 0.75))
 
 
-def test_endpoints_normalise_to_vertices():
+def test_endpoints_normalize_to_vertices():
     assert cx.Point("a", "b", 0.0) == cx.Point.at_vertex("a")
     assert cx.Point("a", "b", 1.0) == cx.Point.at_vertex("b")
     # A vertex reached through two different incident edges is one point.
@@ -42,7 +42,7 @@ def test_mixed_node_types_are_orientable():
     assert cx.Point(0, "a", 0.25) == cx.Point("a", 0, 0.75)
 
 
-def test_segment_normalisation():
+def test_segment_normalization():
     s = cx.Segment("b", "a", 0.75, 0.25)
     assert (s.u, s.v) == ("a", "b")
     assert (s.theta_min, s.theta_max) == (0.25, 0.75)
