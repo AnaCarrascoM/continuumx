@@ -55,7 +55,7 @@ def test_degenerate_hats_reaching_the_endpoints():
         assert envelope(theta) == pytest.approx(
             max(h(theta) for h in hats), abs=1e-9
         )
-    # The minimum sits midway between the two plateaus.
+    # The minimum sits midway between the two intervals [b, s].
     value, intervals = envelope.minimum()
     assert value == pytest.approx(2.0 - 0.2)
     assert intervals == [pytest.approx((0.5, 0.5))]

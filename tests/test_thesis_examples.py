@@ -1,9 +1,10 @@
-"""The worked examples of Chapter 4 of the thesis, computed with the library.
+"""The worked examples of Chapter 4 of the master's thesis, computed with the
+library.
 
 Every number below is quoted from Chapter 4 and checked against
 :mod:`continuumx`, with ``Fraction`` lengths and zero tolerance.  Each test
 names the example or result it checks by its label in the LaTeX source of the
-thesis.
+master's thesis.
 
 The discrete values quoted for comparison (eccentricities, radius, ...) are
 computed with NetworkX on the same weighted graph.
@@ -19,7 +20,7 @@ import pytest
 import continuumx as cx
 
 # ---------------------------------------------------------------------------
-# The graphs of the thesis
+# The graphs of the master's thesis
 # ---------------------------------------------------------------------------
 
 
@@ -556,14 +557,14 @@ class TestAlgorithmicComputation:
         assert value == F(75, 4) and where == [(F(1, 4), F(1, 4))]
 
     def test_maximum_distance_between_two_edges(self, emergency):
-        """ex:max-edge-edge: dist_max(bc, de) = 7/2 and the plateau on bc is
-        [1/6, 1/2]."""
+        """ex:max-edge-edge: dist_max(bc, de) = 7/2, attained on bc exactly on
+        the interval [b_wz, s_wz] = [1/6, 1/2]."""
         (b, s, h), = hat_of(emergency, ("b", "c"), ("d", "e"))
         assert (b, s, h) == (F(1, 6), F(1, 2), F(7, 2))
         assert emergency.edge_length("b", "c") * b == F(1, 2)
         assert emergency.edge_length("b", "c") * s == F(3, 2)
 
-    def test_the_plateau_moves_the_farthest_point_along_de(self, emergency):
+    def test_the_farthest_point_moves_along_de(self, emergency):
         """ex:max-edge-edge: the farthest point of de moves from d to e."""
         G = emergency
         ends = [cx.farthest_point_on_edge(G, G.point("b", "c", offset=o), "d", "e")
@@ -599,9 +600,9 @@ class TestAlgorithmicComputation:
         cyc = ["ab", "bc", "cd", "de", "ea"]
         assert max(pair(e1, e2) for e1, e2 in combinations(cyc, 2)) == F(7, 2)
 
-    def test_pendant_plateau_collapses(self, emergency):
-        """ex:emergency-diam-alg: on af the plateau of cg is theta = 1 (the
-        vertex f), and the farthest point of cg is then g."""
+    def test_pendant_interval_collapses(self, emergency):
+        """ex:emergency-diam-alg: on af, the interval [b_wz, s_wz] of cg reduces
+        to theta = 1 (the vertex f), and the farthest point of cg is then g."""
         (b, s, h), = hat_of(emergency, ("a", "f"), ("c", "g"))
         assert (b, s) == (1, 1) and h == 7
         far = cx.farthest_point_on_edge(emergency, emergency.point("f"), "c", "g")

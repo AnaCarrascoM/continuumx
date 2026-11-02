@@ -1,4 +1,4 @@
-"""The code of Chapter 5 of the thesis, run as written.
+"""The code of Chapter 5 of the master's thesis, run as written.
 
 Chapter 5 walks through the package on the weighted emergency network and
 prints the result of every call.  This module runs those calls with the same

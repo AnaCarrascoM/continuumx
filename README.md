@@ -1,10 +1,12 @@
 # continuumx
 
 `continuumx` is a Python library for **continuous graphs**, built on top of
-[NetworkX](https://networkx.org/). Where a classical graph only has distances
-between vertices, a continuous graph reads every edge as a segment of
-prescribed length, so distances are defined between *any* two points of the
-graph, not just its vertices.
+[NetworkX](https://networkx.org/). In a combinatorial graph, distances are
+measured only between vertices. In a continuous graph, each edge is identified
+with a segment whose length is given by its weight, and distances are measured
+between any two points of the graph. The continuous graph is an abstract metric
+space, obtained by gluing these segments at their endpoints; it need not lie in
+any Euclidean space.
 
 It implements the constructions and algorithms of the master's thesis
 *Computing Distances in Combinatorial and Continuous Graphs* (A. Carrasco
@@ -38,13 +40,14 @@ p = G.point("a", "b", offset=0.1)   # 0.1 from a, along edge ab
 q = G.point("a", "b", offset=4.9)
 
 cx.distance(G, p, q)                # 2.2
-cx.diameter(G)                      # 3.5
-cx.radius(G)                        # 3.5
-cx.center(G)                        # the whole graph, as a list of Segments
+cx.diameter(G)                      # 3.5, half the perimeter: G is a cycle
+cx.radius(G)                        # 3.5, every point has the same eccentricity
+cx.center(G)                        # every point: one Segment per edge
 ```
 
-This triangle shows two facts about points of the same edge that are easy to
-overlook:
+The triangle is a cycle of perimeter 7, so every point has eccentricity 7/2
+and the center is the whole graph, returned as one `Segment` per edge. It also
+shows two facts about points of the same edge that are easy to overlook:
 
 * the distance between two points of the same edge is not the length of the
   segment between them: a path may leave through one endpoint and return
@@ -60,8 +63,8 @@ NetworkX names: comparing the two settings is `nx.diameter(g)` against
 
 [`examples/emergency_network.ipynb`](examples/emergency_network.ipynb) walks
 through the package on the weighted emergency network, following Chapter 5 of
-the thesis: distances, eccentricity, diameter, radius and center, and how the
-continuous center differs from the discrete one.
+the master's thesis: distances, eccentricity, diameter, radius and center, and
+how the continuous center differs from the discrete one.
 
 ## What it computes
 
@@ -90,7 +93,7 @@ infinite (on a cycle it is the whole graph) and need not contain a vertex.
 ## Design notes
 
 **A view, not a subclass.** A continuous graph adds no combinatorial data to a
-graph: it is a pair `(G, ℓ)` read differently. So `ContinuousGraph` wraps an
+graph: it is defined by a pair `(G, ℓ)`. So `ContinuousGraph` wraps an
 `nx.Graph` instead of subclassing it. Subclassing would inherit mutation, which
 cannot preserve the invariants (connectivity, positive lengths); wrapping gives
 a home for the shortest-path cache every continuous algorithm needs. Every
@@ -115,11 +118,12 @@ and `max`, with no square roots or other functions. With `fractions.Fraction`
 edge lengths every computed parameter is an exact rational and `tol=0` is safe,
 which matters for the center, whose structure is decided by equality tests.
 
-**Restrictions in 0.1.** As in the thesis, graphs are simple, undirected and
-connected, with positive edge lengths; multigraphs, self-loops and zero-length
-edges are rejected with an explicit error. Two parallel edges of different
-lengths would define a continuous cycle `C₂`, but the triple `(u, v, θ)` cannot
-name one of them; supporting them would mean adding an edge key to `Point`.
+**Restrictions in 0.1.** As in the master's thesis, graphs are simple,
+undirected and connected, with positive edge lengths; multigraphs, self-loops
+and zero-length edges are rejected with an explicit error. Two parallel edges
+of different lengths would define a continuous cycle `C₂`, but the triple
+`(u, v, θ)` cannot name one of them; supporting them would mean adding an edge
+key to `Point`.
 
 ## Development
 
@@ -162,13 +166,13 @@ library in four ways:
    `rad ≤ diam ≤ 2·rad`, linear scaling under a change of unit, and
    **invariance under subdivision**: splitting an edge in two yields an
    isometric continuous graph, so no parameter may change.
-4. **The thesis.** The worked examples of Chapter 4 are checked with
+4. **The master's thesis.** The worked examples of Chapter 4 are checked with
    `Fraction` lengths and zero tolerance, and the outputs printed in Chapter 5
    are checked literally (`tests/test_chapter5.py`).
 
 ## Future work
 
-As listed in Section 5.8 of the thesis:
+As listed in Section 5.8 of the master's thesis:
 
 * **Efficiency.** Store the upper envelope in an ordered structure, as the 2–3
   tree of Hansen, Labbé and Nicolas, to match the `O(m log m)` bound per edge.

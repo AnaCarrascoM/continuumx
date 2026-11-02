@@ -1,11 +1,11 @@
-"""continuumx: continuous graphs on top of networkx.
+"""continuumx: continuous graphs on top of NetworkX.
 
-A *continuous graph* is a connected graph whose edges are read as segments of
-prescribed length, so that distances are defined between **any** two points of
-the network and not only between its vertices.  This package implements the
-constructions and algorithms of the master's thesis *Computing Distances in
-Combinatorial and Continuous Graphs* (A. Carrasco Martín, Universidad de
-Sevilla).
+In a continuous graph, each edge of a connected graph is identified with a
+segment whose length is given by its weight, and distances are measured
+between any two points of the graph, not only between its vertices.  This
+package implements the constructions and algorithms of the master's thesis
+*Computing Distances in Combinatorial and Continuous Graphs* (A. Carrasco
+Martín, Universidad de Sevilla, 2026).
 
 Quick start
 -----------

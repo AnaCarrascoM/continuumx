@@ -12,7 +12,7 @@ is shared by all the edges incident to it.
 This module stores the **normalized** parameter θ = λ / ℓ(uv) ∈ [0, 1] rather
 than λ, for two reasons:
 
-* it is the parametrization used throughout Chapter 4 of the thesis, from
+* it is the parametrization used throughout Chapter 4 of the master's thesis, from
   (4.1) on, so code and formulas read alike;
 * it is *intrinsic*: a triple (u, v, θ) can be validated without knowing
   ℓ(uv), whereas (u, v, λ) cannot.

@@ -35,14 +35,15 @@ class HatFunction:
                    ⎩ h - (θ - s) L    if s ≤ θ ≤ 1.
 
     A hat is degenerate when a sloped piece is missing (``b == 0`` or
-    ``s == 1``) or the plateau reduces to a point (``b == s``).  Degenerate
+    ``s == 1``) or the interval [b, s] reduces to a point (``b == s``).  Degenerate
     hats need no special treatment, which is why the valley (4.14) of an edge
     against itself is represented as the envelope of two degenerate hats.
 
     Attributes
     ----------
     b, s : float
-        Endpoints of the plateau, with ``0 <= b <= s <= 1``.
+        Endpoints of the interval [b, s] where the hat attains its ceiling,
+        with ``0 <= b <= s <= 1``.
     h : float
         Ceiling, i.e. the maximum of the function.
     slope : float
@@ -178,16 +179,17 @@ def upper_envelope(hats: Iterable[HatFunction]) -> PiecewiseLinear:
     """Return the upper envelope max_k hat_k of the hats.
 
     Implements Algorithm 1 of Hansen, Labbé and Nicolas (Section 4.4.3 of the
-    thesis): the hats are inserted in non-decreasing order of ceiling, which
-    makes each insertion local.  Since every hat is bounded above by its own
-    ceiling, the envelope of the first k hats never exceeds h_k ≤ h_{k+1};
-    therefore the incoming hat dominates the envelope on the whole of its
-    plateau, and, because the difference *incoming minus envelope* is
-    monotone on each side of the plateau (its derivative lies in {0, L, 2L}),
-    it dominates exactly on a single interval [t_l, t_r] ⊇ [b, s].  Updating therefore amounts to finding
-    two crossings and splicing.
+    master's thesis): the hats are inserted in non-decreasing order of
+    ceiling, which makes each insertion local.  Since every hat is bounded
+    above by its own ceiling, the envelope of the first k hats never exceeds
+    h_k ≤ h_{k+1}; therefore the incoming hat dominates the envelope on the
+    whole interval [b, s] where it attains its ceiling, and, because the
+    difference *incoming minus envelope* is monotone on each side of [b, s]
+    (its derivative lies in {0, L, 2L}), it dominates exactly on a single
+    interval [t_l, t_r] ⊇ [b, s].
+    Updating therefore amounts to finding two crossings and splicing.
 
-    Walking outwards from the plateau to find each crossing only ever visits
+    Walking outwards from [b, s] to find each crossing only ever visits
     breakpoints that are about to be deleted, plus one; since a breakpoint is
     created once and deleted at most once, the walks cost O(k) in total.
     The breakpoints, however, are stored in a Python list, which is rebuilt at
@@ -282,7 +284,7 @@ def _insert(xs: List[float], ys: List[Any], hat: HatFunction):
         x0, y0 = xs[j], ys[j]
         if j + 1 <= i:
             x1, y1 = xs[j + 1], ys[j + 1]
-        else:  # the plateau starts strictly inside the segment (xs[j], b)
+        else:  # b lies strictly inside the segment (xs[j], xs[j + 1])
             x1, y1 = b, _eval(xs, ys, b)
         t_left = _cross(x0, y0, x1, y1, b, h, L)
         left_xs = xs[: j + 1]
@@ -302,7 +304,7 @@ def _insert(xs: List[float], ys: List[Any], hat: HatFunction):
         x1, y1 = xs[k], ys[k]
         if k - 1 >= k0:
             x0, y0 = xs[k - 1], ys[k - 1]
-        else:  # the plateau ends strictly inside the segment (s, xs[k])
+        else:  # s lies strictly inside the segment (xs[k - 1], xs[k])
             x0, y0 = s, _eval(xs, ys, s)
         t_right = _cross(x0, y0, x1, y1, s, h, -L)
         right_xs = xs[k:]

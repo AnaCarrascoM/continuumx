@@ -63,8 +63,9 @@ def diametral_pair(G, *, length: str = "length") -> Optional[Tuple[Point, Point]
     In general there are infinitely many; this returns one witness, as in
     Step 3 of the diameter algorithm of Chen and Garfinkel.  Let uv be the edge
     and wz the witness edge of the highest hat.  The first point x* is the
-    point of uv of parameter θ* = b_wz, the left end of the plateau, where the
-    hat attains its ceiling; the second is the point of wz farthest from x*.
+    point of uv of parameter θ* = b_wz, the left end of the interval
+    [b_wz, s_wz] where the hat attains its ceiling; the second is the point of
+    wz farthest from x*.
     For n ≥ 3, the pairs (uv, uv) are omitted, since for every edge uv there
     is a distinct edge vw with d_max(uv, uv) ≤ d_max(uv, vw); this also keeps
     :func:`farthest_point_on_edge` within the hypotheses of the lemma it

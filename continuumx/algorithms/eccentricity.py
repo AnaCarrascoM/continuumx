@@ -36,7 +36,7 @@ def eccentricity_to_edge(G, p: Point, u: Hashable, v: Hashable, *,
                          length: str = "length"):
     """Return ecc(p, uv) = max_{q ∈ uv} d(p, q).
 
-    Two cases, following Lemma 4.2 and Theorem 4.1 (2) of the thesis.
+    Two cases, following Lemma 4.2 and Theorem 4.1 (2) of the master's thesis.
 
     *The point is not interior to* uv.  The farthest point of the edge is the
     one at which the two ways in, through u and through v, cost the same, so
@@ -139,8 +139,8 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
         θ_w = (ℓ(uv) + d(v, w) - d(u, w)) / (2 ℓ(uv)),
 
     and likewise θ_z; both lie in [0, 1] by Lemma 4.1.  By Theorem 4.1 (1), the
-    hat has plateau [b, s] = [min(θ_w, θ_z), max(θ_w, θ_z)], slope ℓ(uv) and
-    ceiling (4.12)
+    hat has slope ℓ(uv) and attains its ceiling (4.12) on the interval
+    [b_wz, s_wz] = [min(θ_w, θ_z), max(θ_w, θ_z)]:
 
         h = (ℓ(uv) + ℓ(wz) + min(d(u, w) + d(v, z), d(u, z) + d(v, w))) / 2.
 

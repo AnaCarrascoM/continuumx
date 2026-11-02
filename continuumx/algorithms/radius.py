@@ -1,6 +1,6 @@
 """Radius of a continuous graph, and the local radius of an edge.
 
-Following Hansen, Labbé and Nicolas (Algorithm 2 of the thesis), the global
+Following Hansen, Labbé and Nicolas (Algorithm 2 of the master's thesis), the global
 problem is decomposed into one local problem per edge.  The *local radius* of
 an edge is the smallest eccentricity attained on it,
 

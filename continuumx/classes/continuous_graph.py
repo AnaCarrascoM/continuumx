@@ -1,9 +1,9 @@
 """The :class:`ContinuousGraph` class.
 
-A continuous graph adds no combinatorial data to a graph: it is a
-reinterpretation of a pair (G, ℓ), where G is a connected graph and ℓ assigns
-a length to each edge.  Accordingly, :class:`ContinuousGraph` is not a subclass
-of :class:`networkx.Graph` but a view over one.
+A continuous graph adds no combinatorial data to a graph: it is the continuous
+graph 𝒢 defined by a pair (G, ℓ), where G is a connected graph and ℓ assigns a
+length to each edge (Definition 4.1).  Accordingly, :class:`ContinuousGraph`
+is not a subclass of :class:`networkx.Graph` but a view over one.
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ class ContinuousGraph:
     -----
     .. _zero-length:
 
-    **Supported inputs.**  As in the thesis, graphs are simple, undirected and
+    **Supported inputs.**  As in the master's thesis, graphs are simple, undirected and
     connected, with positive edge lengths.  Version 0.1 rejects any other
     input with an explicit error:
 
@@ -62,7 +62,7 @@ class ContinuousGraph:
       mean adding an edge key to :class:`~continuumx.Point`.
     * *Self-loops* are rejected for the same reason: both endpoints of a loop
       are the same vertex.
-    * *Zero-length edges* are rejected.  As in Section 4.1.1 of the thesis, no
+    * *Zero-length edges* are rejected.  As in Section 4.1.1 of the master's thesis, no
       generality is lost: contracting a zero-length edge yields the same
       continuous graph, and excluding them keeps θ = λ / ℓ well defined.
 
