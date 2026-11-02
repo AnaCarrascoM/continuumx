@@ -16,7 +16,7 @@ edge — the degenerate hats of an edge against itself already encode it.
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 from continuumx.algorithms.eccentricity import farthest_point_on_edge, hat_functions
 from continuumx.classes.continuous_graph import as_continuous
@@ -50,14 +50,10 @@ def diameter(G, *, length: str = "length"):
     if G.number_of_edges() == 0:
         return 0.0
     G.precompute()
-    return max(
-        hat.h
-        for u, v in G.edges
-        for hat, _ in hat_functions(G, u, v)
-    )
+    return max(hat.h for u, v in G.edges for hat, _ in hat_functions(G, u, v))
 
 
-def diametral_pair(G, *, length: str = "length") -> Optional[Tuple[Point, Point]]:
+def diametral_pair(G, *, length: str = "length") -> Tuple[Point, Point]:
     """Return one diametral pair (p, q), i.e. with ``distance(p, q) == diameter``.
 
     In general there are infinitely many; this returns one witness, as in
@@ -91,11 +87,12 @@ def diametral_pair(G, *, length: str = "length") -> Optional[Tuple[Point, Point]
     for u, v in G.edges:
         for hat, witness in hat_functions(G, u, v):
             if skip_same_edge and set(witness) == {u, v}:
-                continue                        # pairs (uv, uv) are omitted
+                continue  # pairs (uv, uv) are omitted
             if best is None or hat.h > best[0]:
                 best = (hat.h, u, v, hat, witness)
 
+    assert best is not None  # the graph has at least one edge
     _, u, v, hat, witness = best
-    p = Point(u, v, hat.b)                      # theta* = b_wz
+    p = Point(u, v, hat.b)  # theta* = b_wz
     q = farthest_point_on_edge(G, p, witness[0], witness[1])
     return (p, q)

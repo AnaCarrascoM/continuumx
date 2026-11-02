@@ -10,7 +10,7 @@ with an error of at most ``max_edge_length / k``.
 from __future__ import annotations
 
 import random
-from typing import Dict, Hashable, List, Tuple
+from typing import Dict, Hashable
 
 import networkx as nx
 import pytest
@@ -67,12 +67,13 @@ def sampling_error(G: cx.ContinuousGraph, k: int = SAMPLES) -> float:
     return max(ell for _, _, ell in G.iter_edges_with_length()) / k
 
 
-def random_graph(seed: int, n: int = 7, p: float = 0.35,
-                 weighted: bool = True) -> cx.ContinuousGraph:
+def random_graph(
+    seed: int, n: int = 7, p: float = 0.35, weighted: bool = True
+) -> cx.ContinuousGraph:
     """Return a random connected continuous graph."""
     rng = random.Random(seed)
     while True:
-        g = nx.gnp_random_graph(n, p, seed=rng.randint(0, 10 ** 6))
+        g = nx.gnp_random_graph(n, p, seed=rng.randint(0, 10**6))
         if g.number_of_edges() and nx.is_connected(g):
             break
     for u, v in g.edges():

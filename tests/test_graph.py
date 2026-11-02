@@ -91,4 +91,3 @@ def test_distance_cache_is_shared_and_lazy():
 def test_as_continuous_reuses_an_existing_view():
     G = cx.ContinuousGraph(nx.path_graph(3))
     assert cx.as_continuous(G) is G
-

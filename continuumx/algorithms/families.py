@@ -57,7 +57,7 @@ def _tree_distances(
     along it: no priority queue is needed.
     """
     ell = G.edge_length(*G.edges[0])
-    zero = ell - ell       # same numeric type as the lengths (exact for Fraction)
+    zero = ell - ell  # same numeric type as the lengths (exact for Fraction)
     dist: Dict[Hashable, Any] = {source: zero}
     parent: Dict[Hashable, Optional[Hashable]] = {source: None}
     queue = deque([source])
@@ -151,7 +151,7 @@ def tree_center(G, *, length: str = "length") -> Point:
         path.append(parent[path[-1]])
     path.reverse()
     half = diam / 2
-    walked = half - half   # same numeric type as the lengths (exact for Fraction)
+    walked = half - half  # same numeric type as the lengths (exact for Fraction)
     for a, b in zip(path, path[1:]):
         ell = G.edge_length(a, b)
         if walked + ell >= half:
@@ -186,5 +186,5 @@ def cycle_center(G, *, length: str = "length") -> List[Segment]:
     G = as_continuous(G, length=length)
     if not is_cycle(G):
         raise ValueError("cycle_center requires a cycle")
-    zero = G.total_length() - G.total_length()   # numeric type of the lengths
+    zero = G.total_length() - G.total_length()  # numeric type of the lengths
     return [Segment(u, v, zero, zero + 1) for u, v in G.edges]

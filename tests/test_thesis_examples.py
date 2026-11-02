@@ -45,22 +45,33 @@ def running():
 @pytest.fixture
 def logistics():
     """The weighted logistics network (``ex:logistics-weighted``)."""
-    return make([("a", "b", 10), ("b", "c", 5), ("a", "c", 20),
-                 ("a", "d", 5), ("d", "e", 15)])
+    return make(
+        [("a", "b", 10), ("b", "c", 5), ("a", "c", 20), ("a", "d", 5), ("d", "e", 15)]
+    )
 
 
 @pytest.fixture
 def emergency():
     """The weighted emergency network (``ex:emergency``)."""
-    return make([("a", "b", 1), ("b", "c", 3), ("c", "d", 1), ("d", "e", 1),
-                 ("e", "a", 1), ("a", "f", 2), ("c", "g", 2)])
+    return make(
+        [
+            ("a", "b", 1),
+            ("b", "c", 3),
+            ("c", "d", 1),
+            ("d", "e", 1),
+            ("e", "a", 1),
+            ("a", "f", 2),
+            ("c", "g", 2),
+        ]
+    )
 
 
 @pytest.fixture
 def tree():
     """The complete binary tree of depth 3 (``example_eccentricity``)."""
-    t = nx.relabel_nodes(nx.balanced_tree(2, 3),
-                         {i: "abcdefghijklmno"[i] for i in range(15)})
+    t = nx.relabel_nodes(
+        nx.balanced_tree(2, 3), {i: "abcdefghijklmno"[i] for i in range(15)}
+    )
     nx.set_edge_attributes(t, F(1), "length")
     return cx.ContinuousGraph(t, tol=0)
 
@@ -135,14 +146,15 @@ class TestEccentricities:
     def test_tree_interior_point(self, tree, t):
         """ex:tree-ecc-cont: x on dh at distance t from the leaf h has
         ecc(x) = 6 - t."""
-        x = tree.point("d", "h", offset=1 - t)       # offset is measured from d
+        x = tree.point("d", "h", offset=1 - t)  # offset is measured from d
         assert cx.eccentricity(tree, x) == 6 - t
 
     def test_farthest_leaves_from_d(self, tree):
         """ex:tree-ecc-cont: the leaves l, m, n, o outside dh are at distance 5."""
         d = tree.point("d")
-        assert {v: cx.distance(tree, d, tree.point(v)) for v in "lmno"} == \
-            {v: 5 for v in "lmno"}
+        assert {v: cx.distance(tree, d, tree.point(v)) for v in "lmno"} == {
+            v: 5 for v in "lmno"
+        }
 
     def test_cycles(self):
         """ex:cycle-ecc-cont: ecc(v1) = P/2, against 2 and 3 in the discrete case."""
@@ -157,8 +169,13 @@ class TestEccentricities:
 
     def test_logistics_discrete_eccentricities(self, logistics):
         """ex:logistics-ecc-cont: the quoted discrete eccentricities."""
-        assert {v: disc(logistics, v) for v in "abcde"} == \
-            {"a": 20, "b": 30, "c": 35, "d": 20, "e": 35}
+        assert {v: disc(logistics, v) for v in "abcde"} == {
+            "a": 20,
+            "b": 30,
+            "c": 35,
+            "d": 20,
+            "e": 35,
+        }
 
     def test_logistics_edge_is_slack(self, logistics):
         """ex:logistics-ecc-cont: l(ac) = 20 exceeds d(a,c) = 15."""
@@ -176,8 +193,13 @@ class TestEccentricities:
         """ex:logistics-ecc-cont: x* at theta = 7/8, with ecc(x*) = 37.5."""
         xs = logistics.point("a", "c", theta=F(7, 8))
         dist = {v: cx.distance(logistics, xs, logistics.point(v)) for v in "abcde"}
-        assert dist == {"a": F(35, 2), "b": F(15, 2), "c": F(5, 2),
-                        "d": F(45, 2), "e": F(75, 2)}
+        assert dist == {
+            "a": F(35, 2),
+            "b": F(15, 2),
+            "c": F(5, 2),
+            "d": F(45, 2),
+            "e": F(75, 2),
+        }
         assert cx.eccentricity(logistics, xs) == F(75, 2)
 
     @pytest.mark.parametrize("theta", [F(0), F(1, 4), F(7, 8), F(1)])
@@ -201,13 +223,30 @@ class TestEccentricities:
 
     def test_emergency_unweighted_eccentricities(self):
         """ex:emergency-ecc, unweighted case (a discrete example)."""
-        g = nx.Graph([("a", "b"), ("b", "c"), ("c", "d"), ("d", "e"),
-                      ("e", "a"), ("a", "f"), ("c", "g")])
-        assert nx.eccentricity(g) == {"a": 3, "b": 2, "c": 3, "d": 3,
-                                      "e": 3, "f": 4, "g": 4}
+        g = nx.Graph(
+            [
+                ("a", "b"),
+                ("b", "c"),
+                ("c", "d"),
+                ("d", "e"),
+                ("e", "a"),
+                ("a", "f"),
+                ("c", "g"),
+            ]
+        )
+        assert nx.eccentricity(g) == {
+            "a": 3,
+            "b": 2,
+            "c": 3,
+            "d": 3,
+            "e": 3,
+            "f": 4,
+            "g": 4,
+        }
 
-    @pytest.mark.parametrize("theta", [F(0), F(1, 8), F(1, 4), F(1, 2),
-                                       F(3, 4), F(7, 8), F(1)])
+    @pytest.mark.parametrize(
+        "theta", [F(0), F(1, 8), F(1, 4), F(1, 2), F(3, 4), F(7, 8), F(1)]
+    )
     def test_emergency_interior_points(self, emergency, theta):
         """ex:emergency-ecc-cont: ecc(x) = max{4 - theta, 3 + theta, 7/2}."""
         x = emergency.point("d", "e", theta=theta)
@@ -218,16 +257,16 @@ class TestEccentricities:
         """ex:emergency-ecc-cont: 3.5 at the midpoint of de, against 4."""
         mid = emergency.point("d", "e", theta=F(1, 2))
         assert cx.eccentricity(emergency, mid) == F(7, 2)
-        assert min(cx.eccentricity(emergency, emergency.point(v))
-                   for v in "abcdefg") == 4
+        assert (
+            min(cx.eccentricity(emergency, emergency.point(v)) for v in "abcdefg") == 4
+        )
 
     def test_emergency_cycle_is_within_half_the_perimeter(self, emergency):
         """ex:emergency-ecc-cont: P = 7, so every cycle point is within 7/2."""
         x = emergency.point("d", "e", theta=F(1, 3))
         for v in "abcde":
             assert cx.distance(emergency, x, emergency.point(v)) <= F(7, 2)
-        assert cx.distance(emergency, emergency.point("f"),
-                           emergency.point("g")) == 7
+        assert cx.distance(emergency, emergency.point("f"), emergency.point("g")) == 7
 
 
 # ---------------------------------------------------------------------------
@@ -240,8 +279,11 @@ class TestDiameter:
         """ex:tree-diam-cont: diam = 6, with the same 16 pairs of leaves."""
         assert cx.diameter(tree) == 6
         leaves = "hijklmno"
-        pairs = [(u, v) for u, v in combinations(leaves, 2)
-                 if cx.distance(tree, tree.point(u), tree.point(v)) == 6]
+        pairs = [
+            (u, v)
+            for u, v in combinations(leaves, 2)
+            if cx.distance(tree, tree.point(u), tree.point(v)) == 6
+        ]
         assert len(pairs) == 16
         assert nx.diameter(tree.graph) == 6
 
@@ -258,8 +300,11 @@ class TestDiameter:
         c5 = cycle(5)
         for t in (F(0), F(1, 5), F(1, 2), F(4, 5)):
             p = c5.point(0, 1, theta=t)
-            q = c5.point(2, 3, theta=t + F(1, 2)) if t <= F(1, 2) \
+            q = (
+                c5.point(2, 3, theta=t + F(1, 2))
+                if t <= F(1, 2)
                 else c5.point(3, 4, theta=t - F(1, 2))
+            )
             assert cx.distance(c5, p, q) == F(5, 2)
 
     def test_logistics(self, logistics):
@@ -269,8 +314,9 @@ class TestDiameter:
         p, q = cx.diametral_pair(logistics)
         xs = logistics.point("a", "c", theta=F(7, 8))
         e = logistics.point("e")
-        assert (logistics.same_point(p, xs) and logistics.same_point(q, e)) or \
-               (logistics.same_point(q, xs) and logistics.same_point(p, e))
+        assert (logistics.same_point(p, xs) and logistics.same_point(q, e)) or (
+            logistics.same_point(q, xs) and logistics.same_point(p, e)
+        )
         assert cx.distance(logistics, xs, e) == F(75, 2)
 
     def test_logistics_diametral_pair_is_unique(self, logistics):
@@ -363,8 +409,9 @@ class TestRadiusAndCenter:
         """ex:logistics-radius-cont: ecc(x,ac) and ecc(x,de) along ad."""
         for theta in (F(0), F(1, 4), F(1, 2), F(1)):
             x = logistics.point("a", "d", theta=theta)
-            assert cx.eccentricity_to_edge(logistics, x, "a", "c") == \
-                F(35, 2) + 5 * theta
+            assert (
+                cx.eccentricity_to_edge(logistics, x, "a", "c") == F(35, 2) + 5 * theta
+            )
             assert cx.eccentricity_to_edge(logistics, x, "d", "e") == 20 - 5 * theta
 
     def test_emergency(self, emergency):
@@ -373,7 +420,7 @@ class TestRadiusAndCenter:
         assert cx.radius(emergency) == F(7, 2)
         assert nx.radius(emergency.graph, weight="length") == 4
         assert set(nx.center(emergency.graph, weight="length")) == {"d", "e"}
-        assert cx.center(emergency) == [cx.Point("d", "e", F(1, 2))]   # as in Ch. 5
+        assert cx.center(emergency) == [cx.Point("d", "e", F(1, 2))]  # as in Ch. 5
         (c,) = central_points(emergency)
         assert emergency.same_point(c, emergency.point("d", "e", theta=F(1, 2)))
         assert cx.diameter(emergency) == 2 * cx.radius(emergency) == 7
@@ -383,8 +430,12 @@ class TestRadiusAndCenter:
         a and from c; the candidates on the other roads fail."""
         G = emergency
         x = G.point("d", "e", theta=F(1, 2))
-        assert cx.distance(G, x, G.point("a")) == cx.distance(G, x, G.point("c")) == F(3, 2)
-        on_cb = G.point("b", "c", offset=F(1, 2))     # 1/2 from b
+        assert (
+            cx.distance(G, x, G.point("a"))
+            == cx.distance(G, x, G.point("c"))
+            == F(3, 2)
+        )
+        on_cb = G.point("b", "c", offset=F(1, 2))  # 1/2 from b
         on_af = G.point("a", "f", offset=F(3, 2))
         assert cx.distance(G, on_cb, G.point("a")) == F(3, 2)
         assert cx.distance(G, on_af, G.point("a")) == F(3, 2)
@@ -433,8 +484,9 @@ class TestBasicProperties:
         """ex:not-geometric: K4 with all lengths 1 (six edges, total length 6)."""
         assert k4.number_of_edges() == 6 and k4.total_length() == 6
 
-    def test_inequalities_hold_on_every_example(self, logistics, emergency,
-                                                tree, k4, running):
+    def test_inequalities_hold_on_every_example(
+        self, logistics, emergency, tree, k4, running
+    ):
         """prop:rad_diam_continuous and prop:discrete-vs-continuous."""
         for G in (logistics, emergency, tree, k4, running, cycle(5), cycle(6)):
             rad, diam = cx.radius(G), cx.diameter(G)
@@ -465,8 +517,11 @@ class TestPropositions:
         rng = random.Random(11)
         for _ in range(25):
             n = rng.randint(3, 10)
-            g = nx.random_labeled_tree(n, seed=rng.randint(0, 10**6)) \
-                if hasattr(nx, "random_labeled_tree") else nx.random_tree(n, seed=rng.randint(0, 10**6))
+            g = (
+                nx.random_labeled_tree(n, seed=rng.randint(0, 10**6))
+                if hasattr(nx, "random_labeled_tree")
+                else nx.random_tree(n, seed=rng.randint(0, 10**6))
+            )
             G = random_lengths(rng, g)
             diam = cx.diameter(G)
             assert diam == nx.diameter(G.graph, weight="length")
@@ -474,7 +529,7 @@ class TestPropositions:
             (c,) = central_points(G)
             assert cx.eccentricity(G, c) == diam / 2
             p, q = cx.diametral_pair(G)
-            assert G.vertex_distance(p.vertex, q.vertex) == diam   # both are leaves
+            assert G.vertex_distance(p.vertex, q.vertex) == diam  # both are leaves
 
     def test_cycles(self):
         """prop:continuous_cycle_diameter: diam = rad = P/2, center = G."""
@@ -494,8 +549,9 @@ class TestPropositions:
         for _ in range(40):
             n = rng.randint(3, 8)
             while True:
-                g = nx.gnp_random_graph(n, rng.uniform(0.3, 0.9),
-                                        seed=rng.randint(0, 10**6))
+                g = nx.gnp_random_graph(
+                    n, rng.uniform(0.3, 0.9), seed=rng.randint(0, 10**6)
+                )
                 if nx.is_connected(g):
                     break
             G = random_lengths(rng, g)
@@ -517,8 +573,9 @@ class TestPropositions:
 
 def hat_of(G, edge, witness):
     """The hat of ``edge`` associated with the edge ``witness``, as (b, s, h)."""
-    out = [(h.b, h.s, h.h) for h, w in cx.hat_functions(G, *edge)
-           if set(w) == set(witness)]
+    out = [
+        (h.b, h.s, h.h) for h, w in cx.hat_functions(G, *edge) if set(w) == set(witness)
+    ]
     return out
 
 
@@ -559,7 +616,7 @@ class TestAlgorithmicComputation:
     def test_maximum_distance_between_two_edges(self, emergency):
         """ex:max-edge-edge: dist_max(bc, de) = 7/2, attained on bc exactly on
         the interval [b_wz, s_wz] = [1/6, 1/2]."""
-        (b, s, h), = hat_of(emergency, ("b", "c"), ("d", "e"))
+        ((b, s, h),) = hat_of(emergency, ("b", "c"), ("d", "e"))
         assert (b, s, h) == (F(1, 6), F(1, 2), F(7, 2))
         assert emergency.edge_length("b", "c") * b == F(1, 2)
         assert emergency.edge_length("b", "c") * s == F(3, 2)
@@ -567,8 +624,10 @@ class TestAlgorithmicComputation:
     def test_the_farthest_point_moves_along_de(self, emergency):
         """ex:max-edge-edge: the farthest point of de moves from d to e."""
         G = emergency
-        ends = [cx.farthest_point_on_edge(G, G.point("b", "c", offset=o), "d", "e")
-                for o in (F(1, 2), F(1), F(3, 2))]
+        ends = [
+            cx.farthest_point_on_edge(G, G.point("b", "c", offset=o), "d", "e")
+            for o in (F(1, 2), F(1), F(3, 2))
+        ]
         assert G.same_point(ends[0], G.point("d"))
         assert G.same_point(ends[1], G.point("d", "e", theta=F(1, 2)))
         assert G.same_point(ends[2], G.point("e"))
@@ -591,10 +650,17 @@ class TestAlgorithmicComputation:
         assert pair("af", "cg") == 7
         assert pair("af", "bc") == pair("ab", "cg") == F(11, 2)
         # no other pair of distinct edges reaches 11/2 ...
-        others = [d for k, d in dmax.items() if len(k) == 2
-                  and k not in (frozenset([frozenset("af"), frozenset("cg")]),
-                                frozenset([frozenset("af"), frozenset("bc")]),
-                                frozenset([frozenset("ab"), frozenset("cg")]))]
+        others = [
+            d
+            for k, d in dmax.items()
+            if len(k) == 2
+            and k
+            not in (
+                frozenset([frozenset("af"), frozenset("cg")]),
+                frozenset([frozenset("af"), frozenset("bc")]),
+                frozenset([frozenset("ab"), frozenset("cg")]),
+            )
+        ]
         assert max(others) < F(11, 2)
         # ... and two edges of the cycle abcde are within half its perimeter.
         cyc = ["ab", "bc", "cd", "de", "ea"]
@@ -603,7 +669,7 @@ class TestAlgorithmicComputation:
     def test_pendant_interval_collapses(self, emergency):
         """ex:emergency-diam-alg: on af, the interval [b_wz, s_wz] of cg reduces
         to theta = 1 (the vertex f), and the farthest point of cg is then g."""
-        (b, s, h), = hat_of(emergency, ("a", "f"), ("c", "g"))
+        ((b, s, h),) = hat_of(emergency, ("a", "f"), ("c", "g"))
         assert (b, s) == (1, 1) and h == 7
         far = cx.farthest_point_on_edge(emergency, emergency.point("f"), "c", "g")
         assert emergency.same_point(far, emergency.point("g"))
@@ -630,5 +696,4 @@ class TestAlgorithmicComputation:
             assert f(theta) == max(4 - theta, 3 + theta)
         assert f.minimum() == (F(7, 2), [(F(1, 2), F(1, 2))])
         assert cx.local_radius(emergency, "d", "e") == F(7, 2)
-        assert cx.local_center(emergency, "d", "e") == [
-            cx.Point("d", "e", F(1, 2))]
+        assert cx.local_center(emergency, "d", "e") == [cx.Point("d", "e", F(1, 2))]

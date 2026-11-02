@@ -18,8 +18,13 @@ import continuumx as cx
 def emergency():
     """Section 5.2: the weighted emergency network, built as in the chapter."""
     roads = [
-        ("a", "b", 1.0), ("b", "c", 3.0), ("c", "d", 1.0), ("d", "e", 1.0),
-        ("e", "a", 1.0), ("a", "f", 2.0), ("c", "g", 2.0),
+        ("a", "b", 1.0),
+        ("b", "c", 3.0),
+        ("c", "d", 1.0),
+        ("d", "e", 1.0),
+        ("e", "a", 1.0),
+        ("a", "f", 2.0),
+        ("c", "g", 2.0),
     ]
     g = nx.Graph()
     g.add_weighted_edges_from(roads, weight="length")

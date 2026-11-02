@@ -52,9 +52,7 @@ def test_degenerate_hats_reaching_the_endpoints():
     envelope = upper_envelope(hats)
     # This is the "valley" of the same-edge eccentricity.
     for theta in GRID:
-        assert envelope(theta) == pytest.approx(
-            max(h(theta) for h in hats), abs=1e-9
-        )
+        assert envelope(theta) == pytest.approx(max(h(theta) for h in hats), abs=1e-9)
     # The minimum sits midway between the two intervals [b, s].
     value, intervals = envelope.minimum()
     assert value == pytest.approx(2.0 - 0.2)
@@ -63,8 +61,9 @@ def test_degenerate_hats_reaching_the_endpoints():
 
 def test_envelope_requires_a_common_slope():
     with pytest.raises(ValueError):
-        upper_envelope([HatFunction(0.0, 1.0, 1.0, 1.0),
-                        HatFunction(0.0, 1.0, 1.0, 2.0)])
+        upper_envelope(
+            [HatFunction(0.0, 1.0, 1.0, 1.0), HatFunction(0.0, 1.0, 1.0, 2.0)]
+        )
 
 
 def test_piecewise_linear_rejects_decreasing_abscissas():

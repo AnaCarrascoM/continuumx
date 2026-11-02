@@ -107,9 +107,7 @@ class ContinuousGraph:
         if graph.number_of_nodes() == 0:
             raise UnsupportedGraphError("the graph must have at least one vertex")
         if nx.number_of_selfloops(graph) > 0:
-            raise UnsupportedGraphError(
-                "self-loops are not supported in this version"
-            )
+            raise UnsupportedGraphError("self-loops are not supported in this version")
         if not nx.is_connected(graph):
             raise NotConnectedError(
                 "the graph must be connected for the continuous distance to be "
@@ -155,9 +153,7 @@ class ContinuousGraph:
             # A very common mistake: the graph was built with `weight=`, the
             # networkx default, but the library looks for `length`.  Silently
             # falling back to unit lengths would return plausible wrong numbers.
-            has_weight = any(
-                "weight" in d for _, _, d in self._graph.edges(data=True)
-            )
+            has_weight = any("weight" in d for _, _, d in self._graph.edges(data=True))
             if has_weight and self._length_attr != "weight":
                 raise InvalidLengthError(
                     f"no edge carries the attribute {self._length_attr!r}, but "
@@ -293,7 +289,7 @@ class ContinuousGraph:
                     f"offset {offset!r} is outside [0, {length!r}], the length "
                     f"of edge ({u!r}, {v!r})"
                 )
-            zero = length - length      # numeric type of the lengths (exact for Fraction)
+            zero = length - length  # numeric type of the lengths (exact for Fraction)
             theta = min(max(offset / length, zero), zero + 1)
         elif theta is None:
             theta = length - length
@@ -307,9 +303,7 @@ class ContinuousGraph:
             if p.u not in self._graph:
                 raise InvalidPointError(f"{p.u!r} is not a vertex of the graph")
         elif not self._graph.has_edge(p.u, p.v):
-            raise InvalidPointError(
-                f"({p.u!r}, {p.v!r}) is not an edge of the graph"
-            )
+            raise InvalidPointError(f"({p.u!r}, {p.v!r}) is not an edge of the graph")
         return p
 
     def same_point(self, p: Point, q: Point) -> bool:
@@ -365,8 +359,10 @@ class ContinuousGraph:
 
     def _weight_function(self):
         attr = self._length_attr
+
         def weight(_u, _v, data):
             return data.get(attr, 1.0)
+
         return weight
 
     # ------------------------------------------------------------------

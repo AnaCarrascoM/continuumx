@@ -32,8 +32,10 @@ def distance_to_vertex(G, p: Point, w: Hashable, *, length: str = "length"):
         return G.vertex_distance(p.u, w)
     u, v, theta = p.u, p.v, p.theta
     l_uv = G.edge_length(u, v)
-    return min(theta * l_uv + G.vertex_distance(u, w),
-               (1 - theta) * l_uv + G.vertex_distance(v, w))
+    return min(
+        theta * l_uv + G.vertex_distance(u, w),
+        (1 - theta) * l_uv + G.vertex_distance(v, w),
+    )
 
 
 def distance(G, p: Point, q: Point, *, length: str = "length"):
@@ -102,16 +104,17 @@ def distance(G, p: Point, q: Point, *, length: str = "length"):
     (u, v), (w, z) = (p.u, p.v), (q.u, q.v)
     l_uv, l_wz = G.edge_length(u, v), G.edge_length(w, z)
     theta, mu = p.theta, q.theta
-    d = G.vertex_distance                       # d_G, by Dijkstra
+    d = G.vertex_distance  # d_G, by Dijkstra
 
     if (u, v) == (w, z):
         # Same edge (4.4): stay inside, or leave through the endpoint nearer
         # to one point and come back through the other endpoint.
         theta, mu = min(theta, mu), max(theta, mu)
-        return min((mu - theta) * l_uv,
-                   theta * l_uv + d(u, v) + (1 - mu) * l_uv)
+        return min((mu - theta) * l_uv, theta * l_uv + d(u, v) + (1 - mu) * l_uv)
 
-    return min(theta * l_uv + d(u, w) + mu * l_wz,          # different edges (4.5)
-               theta * l_uv + d(u, z) + (1 - mu) * l_wz,
-               (1 - theta) * l_uv + d(v, w) + mu * l_wz,
-               (1 - theta) * l_uv + d(v, z) + (1 - mu) * l_wz)
+    return min(
+        theta * l_uv + d(u, w) + mu * l_wz,  # different edges (4.5)
+        theta * l_uv + d(u, z) + (1 - mu) * l_wz,
+        (1 - theta) * l_uv + d(v, w) + mu * l_wz,
+        (1 - theta) * l_uv + d(v, z) + (1 - mu) * l_wz,
+    )

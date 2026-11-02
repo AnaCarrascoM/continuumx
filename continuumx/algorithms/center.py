@@ -28,12 +28,13 @@ Element = Union[Point, Segment]
 def _element(u: Hashable, v: Hashable, lo, hi) -> Element:
     """A point if the interval is degenerate, a segment otherwise."""
     if lo == hi:
-        return Point(u, v, lo)          # a vertex is normalized by Point
+        return Point(u, v, lo)  # a vertex is normalized by Point
     return Segment(u, v, lo, hi)
 
 
-def local_center(G, u: Hashable, v: Hashable, *,
-                 length: str = "length") -> List[Element]:
+def local_center(
+    G, u: Hashable, v: Hashable, *, length: str = "length"
+) -> List[Element]:
     """Return the local center of the edge ``uv``.
 
     That is, the set of points of ``uv`` attaining
@@ -98,8 +99,10 @@ def _tidy(items: List[Element]) -> List[Element]:
     unique = list(dict.fromkeys(items))
     covered = {
         p
-        for x in unique if isinstance(x, Segment)
-        for p in x.endpoints() if p.is_vertex
+        for x in unique
+        if isinstance(x, Segment)
+        for p in x.endpoints()
+        if p.is_vertex
     }
     kept = [x for x in unique if not (isinstance(x, Point) and x in covered)]
     return sorted(kept, key=_sort_key)

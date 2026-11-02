@@ -32,8 +32,9 @@ __all__ = [
 ]
 
 
-def eccentricity_to_edge(G, p: Point, u: Hashable, v: Hashable, *,
-                         length: str = "length"):
+def eccentricity_to_edge(
+    G, p: Point, u: Hashable, v: Hashable, *, length: str = "length"
+):
     """Return ecc(p, uv) = max_{q ∈ uv} d(p, q).
 
     Two cases, following Lemma 4.2 and Theorem 4.1 (2) of the master's thesis.
@@ -68,8 +69,9 @@ def eccentricity_to_edge(G, p: Point, u: Hashable, v: Hashable, *,
     return (distance_to_vertex(G, p, a) + distance_to_vertex(G, p, b) + ell) / 2
 
 
-def farthest_point_on_edge(G, p: Point, u: Hashable, v: Hashable, *,
-                           length: str = "length") -> Point:
+def farthest_point_on_edge(
+    G, p: Point, u: Hashable, v: Hashable, *, length: str = "length"
+) -> Point:
     """Return a point of the edge ``uv`` at maximum distance from ``p``.
 
     The value of the maximum is :func:`eccentricity_to_edge`; this function
@@ -79,15 +81,15 @@ def farthest_point_on_edge(G, p: Point, u: Hashable, v: Hashable, *,
     G.check_point(p)
     a, b, _ = orient(u, v)
     ell = G.edge_length(a, b)
-    zero = ell - ell      # 0 and 1 of the same numeric type as the lengths,
-    one = zero + 1        # so that Fraction inputs never meet a float
+    zero = ell - ell  # 0 and 1 of the same numeric type as the lengths,
+    one = zero + 1  # so that Fraction inputs never meet a float
 
     if (not p.is_vertex) and (p.u, p.v) == (a, b):
         # The valley (4.14), with β = (ℓ(uv) + d_G(u, v)) / (2 ℓ(uv)).
         beta = (ell + G.vertex_distance(a, b)) / (2 * ell)
         theta = p.theta
         if theta <= 1 - beta:
-            return Point(a, b, min(theta + beta, one))    # guard against rounding
+            return Point(a, b, min(theta + beta, one))  # guard against rounding
         if theta >= beta:
             return Point(a, b, max(theta - beta, zero))
         return Point.at_vertex(b if 1 - theta >= theta else a)
@@ -118,13 +120,12 @@ def eccentricity(G, p: Point, *, length: str = "length"):
     """
     G = as_continuous(G, length=length)
     G.check_point(p)
-    return max(
-        eccentricity_to_edge(G, p, u, v) for u, v in G.edges
-    )
+    return max(eccentricity_to_edge(G, p, u, v) for u, v in G.edges)
 
 
-def hat_functions(G, u: Hashable, v: Hashable, *,
-                  length: str = "length") -> List[Tuple[HatFunction, Tuple]]:
+def hat_functions(
+    G, u: Hashable, v: Hashable, *, length: str = "length"
+) -> List[Tuple[HatFunction, Tuple]]:
     """Return the m+1 hat functions of the edge uv.
 
     Each entry is a pair ``(hat, witness)`` where ``hat`` describes
@@ -152,8 +153,8 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
     G = as_continuous(G, length=length)
     a, b, _ = orient(u, v)
     L = G.edge_length(a, b)
-    zero = L - L          # 0 and 1 of the same numeric type as the lengths,
-    one = zero + 1        # so that Fraction inputs never meet a float
+    zero = L - L  # 0 and 1 of the same numeric type as the lengths,
+    one = zero + 1  # so that Fraction inputs never meet a float
     d_a = G.distances_from(a)
     d_b = G.distances_from(b)
 
@@ -172,8 +173,8 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
         theta_z = (L + d_b[z] - d_a[z]) / (2 * L)
         theta_w = min(max(theta_w, zero), one)  # guard against rounding only
         theta_z = min(max(theta_z, zero), one)
-        if theta_w <= theta_z:                  # then the min in (4.12) is
-            lo, hi = theta_w, theta_z           # d(v, w) + d(u, z)
+        if theta_w <= theta_z:  # then the min in (4.12) is
+            lo, hi = theta_w, theta_z  # d(v, w) + d(u, z)
             cross = d_b[w] + d_a[z]
         else:
             lo, hi = theta_z, theta_w
@@ -184,8 +185,9 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
     return hats
 
 
-def eccentricity_function(G, u: Hashable, v: Hashable, *,
-                          length: str = "length") -> PiecewiseLinear:
+def eccentricity_function(
+    G, u: Hashable, v: Hashable, *, length: str = "length"
+) -> PiecewiseLinear:
     """Return θ ↦ ecc(x_θ) along the edge ``uv``.
 
     The result is the upper envelope of the m+1 hat functions of the

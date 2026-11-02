@@ -71,7 +71,7 @@ class HatFunction:
 
     def breakpoints(self) -> "PiecewiseLinear":
         """Return the hat as a :class:`PiecewiseLinear` function."""
-        zero = self.b - self.b      # keep the numeric type of the data
+        zero = self.b - self.b  # keep the numeric type of the data
         xs = [zero, self.b, self.s, zero + 1]
         ys = [self(x) for x in xs]
         return PiecewiseLinear(xs, ys)
@@ -249,8 +249,9 @@ def _eval(xs: List[float], ys: List[Any], theta: float):
     return y0 + (y1 - y0) * (theta - x0) / (x1 - x0)
 
 
-def _cross(x0: float, y0: Any, x1: float, y1: Any, line_x: float, line_y: Any,
-           slope: Any) -> float:
+def _cross(
+    x0: float, y0: Any, x1: float, y1: Any, line_x: float, line_y: Any, slope: Any
+) -> float:
     """Abscissa where the segment ``(x0,y0)-(x1,y1)`` meets the line of given
     slope through ``(line_x, line_y)``, clipped to ``[x0, x1]``."""
     if x1 == x0:

@@ -25,14 +25,23 @@ def _graph(edges):
 @pytest.fixture
 def coding_example():
     # The running example of the coding chapter.
-    return _graph([("a", "b", 2), ("b", "c", 3), ("b", "e", 6),
-                   ("c", "d", 4), ("c", "f", 3), ("d", "e", 2)])
+    return _graph(
+        [
+            ("a", "b", 2),
+            ("b", "c", 3),
+            ("b", "e", 6),
+            ("c", "d", 4),
+            ("c", "f", 3),
+            ("d", "e", 2),
+        ]
+    )
 
 
 @pytest.fixture
 def logistics():
-    return _graph([("a", "b", 10), ("b", "c", 5), ("a", "c", 20),
-                   ("a", "d", 5), ("d", "e", 15)])
+    return _graph(
+        [("a", "b", 10), ("b", "c", 5), ("a", "c", 20), ("a", "d", 5), ("d", "e", 15)]
+    )
 
 
 def _is_exact(x):
@@ -97,6 +106,7 @@ def test_families_are_exact():
 
 def test_fraction_and_float_runs_agree():
     import random
+
     rng = random.Random(7)
     for _ in range(25):
         n = rng.randint(3, 7)

@@ -27,15 +27,17 @@ def test_full_session():
     # ------------------------------------------------------------------
     # 1. Build the continuous graph.
     # ------------------------------------------------------------------
-    g = nx.Graph() # start with an empty graph.
-    for u, v, ell in EDGES: # add edges to the graph and their lengths
+    g = nx.Graph()  # start with an empty graph.
+    for u, v, ell in EDGES:  # add edges to the graph and their lengths
         g.add_edge(u, v, length=F(ell))
-    G = cx.ContinuousGraph(g, tol=0) # create a continuous graph with the given graph and tolerance
+    G = cx.ContinuousGraph(
+        g, tol=0
+    )  # create a continuous graph with the given graph and tolerance
 
-    assert G.number_of_nodes() == 5     # a,b,c,d,e
-    assert G.number_of_edges() == 5     # ab, bc, be, cd, de
-    assert G.total_length() == 14       # 5 + 1 + 1 + 5 + 2 = 14
-    assert G.edge_length("d", "c") == 5 # edges are undirected (d,c) == (c,d)
+    assert G.number_of_nodes() == 5  # a,b,c,d,e
+    assert G.number_of_edges() == 5  # ab, bc, be, cd, de
+    assert G.total_length() == 14  # 5 + 1 + 1 + 5 + 2 = 14
+    assert G.edge_length("d", "c") == 5  # edges are undirected (d,c) == (c,d)
 
     # ------------------------------------------------------------------
     # 2. Distances between vertices agree with networkx.
@@ -75,7 +77,9 @@ def test_full_session():
         for y in sample:
             assert cx.distance(G, x, y) == cx.distance(G, y, x)
             for z in sample:
-                assert cx.distance(G, x, z) <= cx.distance(G, x, y) + cx.distance(G, y, z)
+                assert cx.distance(G, x, z) <= cx.distance(G, x, y) + cx.distance(
+                    G, y, z
+                )
 
     # ------------------------------------------------------------------
     # 4. Diameter.

@@ -30,6 +30,7 @@ dev = [
     "black",
     "flake8",
     "mypy",
+    "types-networkx",
 ]
 
 [tool.pytest.ini_options]

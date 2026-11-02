@@ -26,6 +26,7 @@ GRID = [0.0, 0.13, 0.5, 0.77, 1.0]
 # Eccentricity
 # ----------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("seed", RANDOM_SEEDS[:8])
 def test_eccentricity_matches_the_oracle(seed):
     G = random_graph(seed)
@@ -71,6 +72,7 @@ def test_eccentricity_of_a_vertex_can_exceed_the_discrete_one():
 # Diameter
 # ----------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("seed", RANDOM_SEEDS)
 def test_diameter_matches_the_oracle(seed):
     G = random_graph(seed)
@@ -110,6 +112,7 @@ def test_cycle_diameter_is_half_the_perimeter(n):
 # ----------------------------------------------------------------------
 # Radius and center
 # ----------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("seed", RANDOM_SEEDS)
 def test_radius_matches_the_oracle(seed):
@@ -178,8 +181,7 @@ def test_center_may_be_interior_to_an_edge(interior_center_network):
     assert G.offset(c) == pytest.approx(4.75)
     assert cx.eccentricity(G, c) == pytest.approx(cx.radius(G))
     assert all(
-        cx.eccentricity(G, cx.Point.at_vertex(w)) > cx.radius(G) + 1e-9
-        for w in G.nodes
+        cx.eccentricity(G, cx.Point.at_vertex(w)) > cx.radius(G) + 1e-9 for w in G.nodes
     )
 
 

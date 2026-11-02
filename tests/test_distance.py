@@ -30,9 +30,7 @@ def test_distance_matches_the_subdivision_oracle(seed):
 @pytest.mark.parametrize("seed", RANDOM_SEEDS[:6])
 def test_metric_axioms(seed):
     G = random_graph(seed)
-    points = [cx.Point(u, v, t)
-              for u, v in G.edges
-              for t in (0.0, 0.2, 0.5, 0.9)]
+    points = [cx.Point(u, v, t) for u, v in G.edges for t in (0.0, 0.2, 0.5, 0.9)]
     for p in points:
         assert cx.distance(G, p, p) == pytest.approx(0.0)
     for p, q in itertools.combinations(points, 2):
@@ -40,7 +38,9 @@ def test_metric_axioms(seed):
         assert d > 0 or G.same_point(p, q)
         assert d == pytest.approx(cx.distance(G, q, p))
     for p, q, r in itertools.combinations(points[:14], 3):
-        assert cx.distance(G, p, r) <= cx.distance(G, p, q) + cx.distance(G, q, r) + 1e-9
+        assert (
+            cx.distance(G, p, r) <= cx.distance(G, p, q) + cx.distance(G, q, r) + 1e-9
+        )
 
 
 @pytest.mark.parametrize("seed", RANDOM_SEEDS[:6])
@@ -63,4 +63,6 @@ def test_distance_to_vertex_agrees_with_distance(triangle_1_1_5):
 
 def test_distance_accepts_a_plain_networkx_graph():
     g = nx.path_graph(3)
-    assert cx.distance(g, cx.Point(0, 1, 0.5), cx.Point(1, 2, 0.5)) == pytest.approx(1.0)
+    assert cx.distance(g, cx.Point(0, 1, 0.5), cx.Point(1, 2, 0.5)) == pytest.approx(
+        1.0
+    )

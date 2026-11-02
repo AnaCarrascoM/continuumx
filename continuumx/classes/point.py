@@ -24,7 +24,7 @@ The absolute offset λ is recovered with
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Hashable, Iterator, Tuple
+from typing import Hashable, Iterator, Optional, Tuple
 
 from continuumx.exceptions import InvalidPointError
 
@@ -140,7 +140,7 @@ class Point:
         return self.u if self.is_vertex else None
 
     @property
-    def edge(self) -> Tuple[Hashable, Hashable]:
+    def edge(self) -> Optional[Tuple[Hashable, Hashable]]:
         """The edge containing the point, or ``None`` for a vertex.
 
         A vertex belongs to every incident edge, so no single edge can be
