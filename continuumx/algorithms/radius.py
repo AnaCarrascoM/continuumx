@@ -1,14 +1,14 @@
 """Radius of a continuous graph, and the local radius of an edge.
 
-Following Hansen, Labbé and Nicolas, the global problem is decomposed into one
-local problem per edge.  The *local continuous radius* of an edge is the
-smallest eccentricity attained on it,
+Following Hansen, Labbé and Nicolas (Algorithm 2 of the thesis), the global
+problem is decomposed into one local problem per edge.  The *local radius* of
+an edge is the smallest eccentricity attained on it,
 
-    rad_c(uv) = min { ecc(x) : x ∈ uv },
+    rad(uv) = min { ecc(x) : x ∈ uv },
 
-and the continuous radius of the graph is the smallest of them:
+and the radius of the continuous graph is the smallest of them, as in (4.17):
 
-    rad(𝒢) = min { rad_c(uv) : uv ∈ E }.
+    rad(𝒢) = min { rad(uv) : uv ∈ E }.
 
 Each local problem is the minimization of the upper envelope of the m+1 hat
 functions of the edge, a piecewise-linear function on [0, 1], computed in
@@ -26,7 +26,7 @@ __all__ = ["radius", "local_radius"]
 
 
 def local_radius(G, u: Hashable, v: Hashable, *, length: str = "length"):
-    """Return the local continuous radius rad_c(uv).
+    """Return the local radius rad(uv).
 
     Complexity
     ----------

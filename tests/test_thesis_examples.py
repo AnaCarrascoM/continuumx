@@ -1,8 +1,9 @@
 """The worked examples of Chapter 4 of the thesis, computed with the library.
 
-Every number below is quoted from ``continuous_setting.tex`` and checked
-against :mod:`continuumx`. Each test names the
-example (or proposition) it comes from by its LaTeX label.
+Every number below is quoted from Chapter 4 and checked against
+:mod:`continuumx`, with ``Fraction`` lengths and zero tolerance.  Each test
+names the example or result it checks by its label in the LaTeX source of the
+thesis.
 
 The discrete values quoted for comparison (eccentricities, radius, ...) are
 computed with NetworkX on the same weighted graph.
@@ -509,7 +510,7 @@ class TestPropositions:
 
 
 # ---------------------------------------------------------------------------
-# Examples that are commented out in the current chapter
+# Section 4.4: algorithmic computation
 # ---------------------------------------------------------------------------
 
 
@@ -520,7 +521,7 @@ def hat_of(G, edge, witness):
     return out
 
 
-class TestCommentedOutExamples:
+class TestAlgorithmicComputation:
     def test_farthest_point_of_an_edge(self, logistics):
         """ex:farthest-point: from b, the farthest point of ac is at
         distance 17.5, at theta = 3/8 (7.5 from a, 12.5 from c)."""

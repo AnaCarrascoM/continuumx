@@ -49,7 +49,7 @@ def test_eccentricity_function_agrees_pointwise(seed):
 
 
 @pytest.mark.parametrize("seed", RANDOM_SEEDS[:6])
-def test_farthest_point_on_edge_attains_the_remoteness(seed):
+def test_farthest_point_on_edge_attains_the_relative_eccentricity(seed):
     G = random_graph(seed)
     for p in [cx.Point(u, v, 0.37) for u, v in G.edges]:
         for u, v in G.edges:

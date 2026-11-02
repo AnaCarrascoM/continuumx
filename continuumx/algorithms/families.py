@@ -89,9 +89,9 @@ def _double_sweep(
 def tree_diameter(G, *, length: str = "length"):
     """Return diam(𝒯) for a continuous tree.
 
-    On a tree the longest path joins two leaves, and no pair involving an
-    interior point of an edge can beat it, so the continuous diameter equals
-    the discrete one.  It is found by two traversals of the tree.
+    By Proposition 4.4, every diametral pair of a continuous tree consists of
+    two leaves, so the continuous diameter equals the discrete one.  It is
+    found by two traversals of the tree.
 
     Complexity
     ----------
@@ -121,9 +121,9 @@ def tree_radius(G, *, length: str = "length"):
 def tree_center(G, *, length: str = "length") -> Point:
     """Return the continuous center of a tree: the midpoint of a diametral path.
 
-    In the continuous setting the center of a tree is always a **single**
-    point; the parity obstruction of the discrete case, where an odd diameter
-    forces two central vertices, disappears.
+    By Proposition 4.5, the center of a continuous tree is always a single
+    point; the parity obstruction of the discrete case (Proposition 3.7), where
+    an odd diameter forces two central vertices, disappears.
 
     Complexity
     ----------
@@ -161,7 +161,7 @@ def tree_center(G, *, length: str = "length") -> Point:
 
 
 def cycle_diameter(G, *, length: str = "length"):
-    """Return diam(𝒞) = Per(𝒞)/2.
+    """Return diam(𝒞) = Per(𝒞)/2 (Proposition 4.3).
 
     Examples
     --------

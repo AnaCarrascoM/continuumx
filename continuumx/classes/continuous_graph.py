@@ -52,22 +52,19 @@ class ContinuousGraph:
     -----
     .. _zero-length:
 
-    **Supported inputs.**  Version 0.1 deliberately restricts the input class
-    and rejects everything else with an explicit error rather than failing
-    later or, worse, returning a wrong number:
+    **Supported inputs.**  As in the thesis, graphs are simple, undirected and
+    connected, with positive edge lengths.  Version 0.1 rejects any other
+    input with an explicit error:
 
-    * *Directed graphs and multigraphs* are rejected.  Multigraphs are a
-      genuine loss — two parallel edges of different lengths form a perfectly
-      good continuous graph, indeed a continuous C₂ — but the triple
-      (u, v, θ) cannot name one of two parallel edges.  Adding them later
-      means adding an edge key to :class:`~continuumx.Point`, not rewriting
-      the algorithms.
-    * *Self-loops* are rejected for the same reason (a loop is a circle
-      attached at a vertex, and both its "endpoints" are the same vertex).
-    * *Zero-length edges* are rejected.  The theory admits them, but
-      θ = λ / ℓ is then undefined and every formula acquires a degenerate
-      branch, in exchange for no expressive power: contracting a zero-length
-      edge yields an isometric continuous graph.
+    * *Directed graphs and multigraphs* are rejected.  Two parallel edges of
+      different lengths would define a continuous cycle C₂, but the triple
+      (u, v, θ) cannot name one of two parallel edges.  Supporting them would
+      mean adding an edge key to :class:`~continuumx.Point`.
+    * *Self-loops* are rejected for the same reason: both endpoints of a loop
+      are the same vertex.
+    * *Zero-length edges* are rejected.  As in Section 4.1.1 of the thesis, no
+      generality is lost: contracting a zero-length edge yields the same
+      continuous graph, and excluding them keeps θ = λ / ℓ well defined.
 
     **Exact arithmetic.**  Every formula in the library uses only the four
     arithmetic operations, ``min`` and ``max``, with no square roots or other
@@ -233,7 +230,7 @@ class ContinuousGraph:
             raise ValueError(f"({u!r}, {v!r}) is not an edge of the graph") from None
 
     def total_length(self):
-        """Return ℓ(E) = Σ_{e∈E} ℓ(e)."""
+        """Return the total length ℓ(𝒢) = Σ_{uv∈E} ℓ(uv)."""
         if not self._lengths:
             return 0.0
         total = None

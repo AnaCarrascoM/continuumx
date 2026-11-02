@@ -4,9 +4,9 @@ The eccentricity of a point is a maximum over the whole continuum,
 
     ecc(p) = max { d_𝒢(p, q) : q ∈ 𝒢 },
 
-but it is computable because the maximum over a single edge — the *remoteness*
-of p relative to that edge — has a closed form.  The global maximum is then a
-maximum over the m edges.
+but it is computable because the maximum over a single edge, the eccentricity
+of p relative to that edge (Definition 4.8), has a closed form.  The global
+maximum is then a maximum over the m edges, as in (4.11).
 
 Reading the eccentricity as a function of the position of p along a fixed edge
 gives the hat functions of
@@ -39,7 +39,8 @@ def eccentricity_to_edge(G, p: Point, u: Hashable, v: Hashable, *,
     Two cases, following Lemma 4.2 and Theorem 4.1 (2) of the thesis.
 
     *The point is not interior to* uv.  The farthest point of the edge is the
-    one at which the two ways in — through u and through v — cost the same, so
+    one at which the two ways in, through u and through v, cost the same, so
+    by (4.9)
 
         ecc(p, uv) = (d(p, u) + d(p, v) + ℓ(uv)) / 2.
 
@@ -47,9 +48,10 @@ def eccentricity_to_edge(G, p: Point, u: Hashable, v: Hashable, *,
     the edge itself gives |d(p, u) - d(p, v)| ≤ ℓ(uv), so no clipping is
     needed.
 
-    *The point is interior to* uv.  The formula above is then wrong, because a
-    path from p to a point of its own edge may simply stay inside the edge.
-    Writing D = d_G(u, v) and L = ℓ(uv), the remoteness becomes the "valley"
+    *The point is interior to* uv.  The formula above no longer applies,
+    because a path from p to a point of its own edge may stay inside the edge.
+    Writing D = d_G(u, v) and L = ℓ(uv), the eccentricity relative to uv is the
+    valley (4.14), which can be written as
 
         ecc(p, uv) = min( max(θ, 1 - θ) · L,  (L + D) / 2 ).
     """
@@ -126,25 +128,26 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
     """Return the m+1 hat functions of the edge uv.
 
     Each entry is a pair ``(hat, witness)`` where ``hat`` describes
-    θ ↦ ecc(x_θ, e') for one edge e', and ``witness`` is that edge (the edge
+    θ ↦ ecc(x_θ, wz) for one edge wz, and ``witness`` is that edge (the edge
     uv itself contributes two degenerate hats, and is reported twice).
 
     Notes
     -----
-    For e' = v_k v_l ≠ uv, write
+    For an edge wz ≠ uv, let θ_w and θ_z be the parameters of the points of uv
+    farthest from w and from z, given by (4.7):
 
-        θ_k = (ℓ(uv) + d(v, v_k) - d(u, v_k)) / (2 ℓ(uv)),
+        θ_w = (ℓ(uv) + d(v, w) - d(u, w)) / (2 ℓ(uv)),
 
-    the position of the point of uv farthest from v_k, and likewise θ_l.  Both
-    lie in [0, 1] by the triangle inequality.  The hat has plateau
-    [min(θ_k, θ_l), max(θ_k, θ_l)], slope ℓ(uv), and ceiling
+    and likewise θ_z; both lie in [0, 1] by Lemma 4.1.  By Theorem 4.1 (1), the
+    hat has plateau [b, s] = [min(θ_w, θ_z), max(θ_w, θ_z)], slope ℓ(uv) and
+    ceiling (4.12)
 
-        h = (ℓ(uv) + ℓ(e') + min(d(u, v_k) + d(v, v_l), d(u, v_l) + d(v, v_k))) / 2.
+        h = (ℓ(uv) + ℓ(wz) + min(d(u, w) + d(v, z), d(u, z) + d(v, w))) / 2.
 
-    For e' = uv, the remoteness is the valley of :func:`eccentricity_to_edge`,
-    which is the upper envelope of the two degenerate hats with ceiling
-    (ℓ(uv) + d_G(u, v)) / 2 and plateaus [0, θ_v] and [θ_u, 1].  Modeling it
-    this way keeps a single code path downstream.
+    For the edge uv itself, the eccentricity relative to uv is the valley
+    (4.14), the upper envelope of the two degenerate hats of ceiling β ℓ(uv)
+    with (b, s) = (0, 1 - β) and (β, 1), where β = (ℓ(uv) + d(u, v)) / (2 ℓ(uv)).
+    Representing it this way keeps a single code path downstream.
     """
     G = as_continuous(G, length=length)
     a, b, _ = orient(u, v)
@@ -156,8 +159,8 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
 
     hats: List[Tuple[HatFunction, Tuple]] = []
 
-    for k, l, ell in G.iter_edges_with_length():
-        if (k, l) == (a, b):
+    for w, z, ell in G.iter_edges_with_length():
+        if (w, z) == (a, b):
             D = d_a[b]
             ceiling = (L + D) / 2
             theta_lo = (L - D) / (2 * L)
@@ -165,18 +168,18 @@ def hat_functions(G, u: Hashable, v: Hashable, *,
             hats.append((HatFunction(zero, theta_lo, ceiling, L), (a, b)))
             hats.append((HatFunction(theta_hi, one, ceiling, L), (a, b)))
             continue
-        theta_k = (L + d_b[k] - d_a[k]) / (2 * L)
-        theta_l = (L + d_b[l] - d_a[l]) / (2 * L)
-        theta_k = min(max(theta_k, zero), one)  # guard against rounding only
-        theta_l = min(max(theta_l, zero), one)
-        if theta_k <= theta_l:
-            lo, hi = theta_k, theta_l
-            cross = d_b[k] + d_a[l]
+        theta_w = (L + d_b[w] - d_a[w]) / (2 * L)
+        theta_z = (L + d_b[z] - d_a[z]) / (2 * L)
+        theta_w = min(max(theta_w, zero), one)  # guard against rounding only
+        theta_z = min(max(theta_z, zero), one)
+        if theta_w <= theta_z:                  # then the min in (4.12) is
+            lo, hi = theta_w, theta_z           # d(v, w) + d(u, z)
+            cross = d_b[w] + d_a[z]
         else:
-            lo, hi = theta_l, theta_k
-            cross = d_b[l] + d_a[k]
+            lo, hi = theta_z, theta_w
+            cross = d_b[z] + d_a[w]
         ceiling = (L + ell + cross) / 2
-        hats.append((HatFunction(lo, hi, ceiling, L), (k, l)))
+        hats.append((HatFunction(lo, hi, ceiling, L), (w, z)))
 
     return hats
 
@@ -186,9 +189,7 @@ def eccentricity_function(G, u: Hashable, v: Hashable, *,
     """Return θ ↦ ecc(x_θ) along the edge ``uv``.
 
     The result is the upper envelope of the m+1 hat functions of the
-    edge.  It is the object the local radius and local center are read off, and
-    it is also what to plot when illustrating the eccentricity profile of an
-    edge.
+    edge; the local radius and the local center of the edge are read off it.
 
     Complexity
     ----------

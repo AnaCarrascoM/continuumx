@@ -12,9 +12,6 @@ available:
 * the local radius and local center of an edge are the minimum of an envelope
   and the set where it is attained;
 * the radius and the center aggregate those over the edges.
-
-Keeping this machinery in one place is what makes the library extensible: a new
-parameter is a new way of reading an envelope, not a new pile of formulas.
 """
 
 from __future__ import annotations
@@ -37,10 +34,10 @@ class HatFunction:
         hat(θ) =   ⎨ h                if b ≤ θ ≤ s,
                    ⎩ h - (θ - s) L    if s ≤ θ ≤ 1.
 
-    Degenerate hats (``b == 0`` or ``s == 1``) describe the cases in which the
-    plateau reaches an endpoint of the edge; they are not special-cased
-    anywhere, which is the reason for modeling the "valley" of the
-    same-edge eccentricity as the envelope of two degenerate hats.
+    A hat is degenerate when a sloped piece is missing (``b == 0`` or
+    ``s == 1``) or the plateau reduces to a point (``b == s``).  Degenerate
+    hats need no special treatment, which is why the valley (4.14) of an edge
+    against itself is represented as the envelope of two degenerate hats.
 
     Attributes
     ----------
@@ -180,14 +177,14 @@ class PiecewiseLinear:
 def upper_envelope(hats: Iterable[HatFunction]) -> PiecewiseLinear:
     """Return the upper envelope max_k hat_k of the hats.
 
-    Implements Algorithm 1 of Hansen, Labbé and Nicolas: the hats are inserted
-    in non-decreasing order of ceiling, which is what makes each insertion
-    cheap.  Since every hat is bounded above by its own ceiling, the envelope
-    of the first k hats never exceeds h_k ≤ h_{k+1}; therefore the incoming
-    hat dominates the envelope on the whole of its plateau, and — because the
-    difference *incoming minus envelope* is monotone on each side of the
-    plateau, its derivative lying in {0, L, 2L} — it dominates exactly on a
-    single interval [t_l, t_r] ⊇ [b, s].  Updating therefore amounts to finding
+    Implements Algorithm 1 of Hansen, Labbé and Nicolas (Section 4.4.3 of the
+    thesis): the hats are inserted in non-decreasing order of ceiling, which
+    makes each insertion local.  Since every hat is bounded above by its own
+    ceiling, the envelope of the first k hats never exceeds h_k ≤ h_{k+1};
+    therefore the incoming hat dominates the envelope on the whole of its
+    plateau, and, because the difference *incoming minus envelope* is
+    monotone on each side of the plateau (its derivative lies in {0, L, 2L}),
+    it dominates exactly on a single interval [t_l, t_r] ⊇ [b, s].  Updating therefore amounts to finding
     two crossings and splicing.
 
     Walking outwards from the plateau to find each crossing only ever visits

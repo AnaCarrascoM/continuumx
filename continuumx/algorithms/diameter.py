@@ -1,8 +1,8 @@
 """Diameter of a continuous graph.
 
 The diameter is a maximum over an infinite set of pairs of points, yet it is
-determined by finitely many candidates, and the hat functions of
-:mod:`continuumx.algorithms.eccentricity` deliver them for free:
+determined by finitely many candidates, given by the hat functions of
+:mod:`continuumx.algorithms.eccentricity` (Corollaries 4.1 and 4.2):
 
     diam(𝒢) = max over p ∈ 𝒢 of ecc(p)
             = max over edges e, hats k, and θ ∈ [0, 1] of hat_k^e(θ)
@@ -34,10 +34,9 @@ def diameter(G, *, length: str = "length"):
 
     Notes
     -----
-    A tempting shortcut is to treat the largest distance between two points of
-    the *same* edge as its length ℓ(e).  That overestimates: on the triangle
-    with ℓ(ab) = 5 and a path a c b of length 2, the two points of ab farthest
-    apart are at distance 3.5, not 5.
+    The largest distance between two points of the same edge uv is not ℓ(uv)
+    but (ℓ(uv) + d_G(u, v)) / 2, by (4.16): on the triangle with ℓ(ab) = 5 and
+    a path a c b of length 2, it is 3.5, not 5.
 
     Examples
     --------

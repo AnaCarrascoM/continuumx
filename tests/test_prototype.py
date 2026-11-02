@@ -121,7 +121,7 @@ def test_full_session():
     assert all(cx.eccentricity(G, G.point(v)) > rad for v in g)
     assert nx.center(g, weight="length") == ["b"]
 
-    # The eccentricity profile of ab has its minimum exactly there, and it
+    # The eccentricity along ab has its minimum exactly there, and it
     # agrees with the eccentricities of the endpoints.
     profile = cx.eccentricity_function(G, "a", "b")
     assert profile(0) == cx.eccentricity(G, G.point("a")) == diam

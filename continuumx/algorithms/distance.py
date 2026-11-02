@@ -1,10 +1,11 @@
 """Distances between points of a continuous graph.
 
-The continuous distance d_𝒢 is the geodesic distance of the metric space 𝒢.
-Any path between two points must leave the edge containing the first through
-one of its endpoints and enter the edge containing the second through one of
-*its* endpoints, which reduces the distance to a minimum of finitely many
-expressions involving only the discrete distances d_G between vertices.
+The distance d_𝒢 is the length of a shortest walk between two points
+(Definition 4.3).  Unless both points lie on the same edge, a shortest walk
+leaves the edge of the first point through one of its endpoints and enters the
+edge of the second through one of its endpoints.  This reduces the distance to
+a minimum of finitely many expressions in the distances d_G between vertices
+(Proposition 4.1).
 """
 
 from __future__ import annotations

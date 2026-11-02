@@ -34,7 +34,7 @@ def _element(u: Hashable, v: Hashable, lo, hi) -> Element:
 
 def local_center(G, u: Hashable, v: Hashable, *,
                  length: str = "length") -> List[Element]:
-    """Return the local continuous center of the edge ``uv``.
+    """Return the local center of the edge ``uv``.
 
     That is, the set of points of ``uv`` attaining
     :func:`~continuumx.local_radius`, as a list of points and segments.
@@ -54,8 +54,8 @@ def local_center(G, u: Hashable, v: Hashable, *,
 def center(G, *, length: str = "length") -> List[Element]:
     """Return the continuous center C(𝒢).
 
-    The center is the union, over the edges whose local continuous radius
-    equals the continuous radius, of their local continuous centers.  Each
+    The center is the union, over the edges whose local radius equals
+    rad(𝒢), of their local centers.  Each
     element of the list is a :class:`~continuumx.Point` when the minimum of an
     envelope is attained at an isolated point, and a
     :class:`~continuumx.Segment` when it is attained along a stretch of the
