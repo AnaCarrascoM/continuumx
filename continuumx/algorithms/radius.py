@@ -1,8 +1,8 @@
 """Radius of a continuous graph, and the local radius of an edge.
 
-Following Hansen, Labbé and Nicolas (Algorithm 2 of the master's thesis), the global
-problem is decomposed into one local problem per edge.  The *local radius* of
-an edge is the smallest eccentricity attained on it,
+Following Hansen, Labbé and Nicolas (Algorithm 2 of the master's thesis), the
+global problem is decomposed into one local problem per edge.  The *local
+radius* of an edge is the smallest eccentricity attained on it,
 
     rad(uv) = min { ecc(x) : x ∈ uv },
 
@@ -11,8 +11,8 @@ and the radius of the continuous graph is the smallest of them, as in (4.17):
     rad(𝒢) = min { rad(uv) : uv ∈ E }.
 
 Each local problem is the minimization of the upper envelope of the m+1 hat
-functions of the edge, a piecewise-linear function on [0, 1], computed in
-O(m²) (see :func:`~continuumx.upper_envelope`).
+functions of the edge, a piecewise-linear function on [0, 1], computed with
+Algorithm 1 in O(m²) (see :func:`~continuumx.upper_envelope`).
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def local_radius(G, u: Hashable, v: Hashable, *, length: str = "length"):
 
     Complexity
     ----------
-    O(m²) once the discrete distances are available.
+    O(m²) once the distances between vertices are available.
 
     Examples
     --------
@@ -45,19 +45,19 @@ def local_radius(G, u: Hashable, v: Hashable, *, length: str = "length"):
 
 
 def radius(G, *, length: str = "length"):
-    """Return the continuous radius rad(𝒢).
+    """Return the radius rad(𝒢) of the continuous graph.
 
     Complexity
     ----------
-    O(n m log n) for the all-pairs shortest paths plus O(m³) for the m
-    local problems.
+    A(n, m) = O(n m log n) for the distances between vertices, plus O(m³) for
+    the m local problems.
 
     Examples
     --------
     >>> import networkx as nx, continuumx as cx
-    >>> cx.radius(cx.ContinuousGraph(nx.path_graph(4)))   # a tree: diam / 2
+    >>> cx.radius(cx.ContinuousGraph(nx.path_graph(4)))   # a tree: diam / 2 (Prop. 4.5)
     1.5
-    >>> cx.radius(cx.ContinuousGraph(nx.cycle_graph(5)))  # a cycle: == diameter
+    >>> cx.radius(cx.ContinuousGraph(nx.cycle_graph(5)))  # a cycle: diam (Prop. 4.3)
     2.5
     """
     G = as_continuous(G, length=length)

@@ -30,7 +30,7 @@ Quick start
 Naming
 ------
 The package namespace already says "continuous", so parameters keep the names
-they have in ``networkx``: :func:`diameter`, :func:`radius`, :func:`center`,
+they have in NetworkX: :func:`diameter`, :func:`radius`, :func:`center`,
 :func:`eccentricity`.  Comparing the two settings is then a matter of reading
 ``nx.diameter(g)`` against ``cx.diameter(g)``.
 """
@@ -74,6 +74,7 @@ __all__ = [
     "ContinuousGraph",
     "Point",
     "Segment",
+    # building a view from a NetworkX graph
     "as_continuous",
     # piecewise-linear toolkit
     "HatFunction",

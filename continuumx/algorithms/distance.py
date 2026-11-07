@@ -21,7 +21,7 @@ __all__ = ["distance", "distance_to_vertex"]
 def distance_to_vertex(G, p: Point, w: Hashable, *, length: str = "length"):
     """Return d_𝒢(p, w) for a point ``p`` and a vertex ``w``.
 
-    A shortest path leaves the edge uv containing ``p`` through ``u`` or
+    A shortest walk leaves the edge uv containing ``p`` through ``u`` or
     through ``v``, so, with θ the parameter of ``p`` (formula (4.2)),
 
         d_𝒢(p, w) = min( θ ℓ(uv) + d_G(u, w),  (1 - θ) ℓ(uv) + d_G(v, w) ).
@@ -39,7 +39,7 @@ def distance_to_vertex(G, p: Point, w: Hashable, *, length: str = "length"):
 
 
 def distance(G, p: Point, q: Point, *, length: str = "length"):
-    """Return the continuous distance d_𝒢(p, q).
+    """Return the distance d_𝒢(p, q) between two points.
 
     Parameters
     ----------
@@ -55,24 +55,23 @@ def distance(G, p: Point, q: Point, *, length: str = "length"):
 
     *One of the points is a vertex.*  Handled by :func:`distance_to_vertex`.
 
-    *The points lie on different edges* uv and wz.  A path leaves uv through
+    *The points lie on different edges* uv and wz.  A walk leaves uv through
     ``u`` or ``v`` and enters wz through ``w`` or ``z``, giving the minimum of
     the four expressions of (4.5).
 
-    *The points lie on the same edge* uv.  It is **not** enough to take
-    (μ - θ) ℓ(uv): a path may leave the edge through one endpoint and come
-    back through the other, which is shorter whenever the edge is long
-    compared with the rest of the graph.  For example, on the triangle with
-    ℓ(ab) = 5 and a path a c b of total length 2, the points of ab at distance
-    0.1 from a and 0.1 from b are at distance 2.2, not 4.8.  Ordering the
-    parameters so that θ ≤ μ, the correct expression is (4.4):
+    *The points lie on the same edge* uv.  It is not enough to take
+    (μ - θ) ℓ(uv): a walk may leave the edge through one endpoint and come
+    back through the other, which can be shorter when d_G(u, v) < ℓ(uv) and
+    the points are far apart along the edge (Example 4.5).
+    Ordering the parameters so that θ ≤ μ, the correct expression is (4.4):
 
         d_𝒢(p, q) = min( (μ - θ) ℓ(uv),
                          θ ℓ(uv) + d_G(u, v) + (1 - μ) ℓ(uv) ).
 
-    Using d_G(u, v) rather than the distance in G - uv is safe: each expression
-    is the length of an actual walk, so none can undercut the true distance,
-    and the shortest path is among them.
+    The formula uses d_G(u, v) even when the shortest route from u to v is the
+    edge uv itself.  This is safe: every expression is the length of an actual
+    walk, so none is smaller than the true distance, and a shortest walk is
+    among them.
 
     Complexity
     ----------
@@ -107,8 +106,8 @@ def distance(G, p: Point, q: Point, *, length: str = "length"):
     d = G.vertex_distance  # d_G, by Dijkstra
 
     if (u, v) == (w, z):
-        # Same edge (4.4): stay inside, or leave through the endpoint nearer
-        # to one point and come back through the other endpoint.
+        # Same edge (4.4): stay inside, or leave through u and come back
+        # through v.
         theta, mu = min(theta, mu), max(theta, mu)
         return min((mu - theta) * l_uv, theta * l_uv + d(u, v) + (1 - mu) * l_uv)
 

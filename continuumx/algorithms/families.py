@@ -1,16 +1,9 @@
 """Closed forms and specialized algorithms for trees and cycles.
 
-Two families admit an exact description of every metric parameter, and they
-realize the two extremes of rad ≤ diam ≤ 2 rad:
-
-* on a **tree**, the continuous diameter coincides with the discrete one, and
-  rad(𝒯) = diam(𝒯)/2, the center being the midpoint of any diametral path (an
-  interior point of an edge in general);
-* on a **cycle**, every point has the same eccentricity, so
-  rad(𝒞) = diam(𝒞) = Per(𝒞)/2 and the center is the whole graph.
-
-These functions are cheaper than the general algorithms, and they double as
-independent oracles for the test suite.
+On these two families every parameter has a simple description
+(Propositions 4.3 to 4.5), which realizes the two extremes of
+rad ≤ diam ≤ 2 rad.  These functions are cheaper than the general
+algorithms, and the test suite uses them as independent checks.
 """
 
 from __future__ import annotations
@@ -57,7 +50,8 @@ def _tree_distances(
     along it: no priority queue is needed.
     """
     ell = G.edge_length(*G.edges[0])
-    zero = ell - ell  # same numeric type as the lengths (exact for Fraction)
+    # 0 with the numeric type of the lengths (exact for Fraction)
+    zero = ell - ell
     dist: Dict[Hashable, Any] = {source: zero}
     parent: Dict[Hashable, Optional[Hashable]] = {source: None}
     queue = deque([source])
@@ -90,12 +84,11 @@ def tree_diameter(G, *, length: str = "length"):
     """Return diam(𝒯) for a continuous tree.
 
     By Proposition 4.4, every diametral pair of a continuous tree consists of
-    two leaves, so the continuous diameter equals the discrete one.  It is
-    found by two traversals of the tree.
+    two leaves, so the continuous diameter equals the discrete one.
 
     Complexity
     ----------
-    O(n) — two traversals of the tree — against O(m²) for the general
+    O(n), with two traversals of the tree, against O(m²) for the general
     algorithm.
 
     Examples
@@ -119,11 +112,10 @@ def tree_radius(G, *, length: str = "length"):
 
 
 def tree_center(G, *, length: str = "length") -> Point:
-    """Return the continuous center of a tree: the midpoint of a diametral path.
+    """Return the center of a continuous tree: the midpoint of a diametral path.
 
     By Proposition 4.5, the center of a continuous tree is always a single
-    point; the parity obstruction of the discrete case (Proposition 3.7), where
-    an odd diameter forces two central vertices, disappears.
+    point.
 
     Complexity
     ----------
@@ -151,7 +143,8 @@ def tree_center(G, *, length: str = "length") -> Point:
         path.append(parent[path[-1]])
     path.reverse()
     half = diam / 2
-    walked = half - half  # same numeric type as the lengths (exact for Fraction)
+    # 0 with the numeric type of the lengths (exact for Fraction)
+    walked = half - half
     for a, b in zip(path, path[1:]):
         ell = G.edge_length(a, b)
         if walked + ell >= half:
@@ -182,9 +175,10 @@ def cycle_radius(G, *, length: str = "length"):
 
 
 def cycle_center(G, *, length: str = "length") -> List[Segment]:
-    """Return the continuous center of a cycle: the whole graph."""
+    """Return the center of a continuous cycle: the whole graph."""
     G = as_continuous(G, length=length)
     if not is_cycle(G):
         raise ValueError("cycle_center requires a cycle")
-    zero = G.total_length() - G.total_length()  # numeric type of the lengths
+    # 0 with the numeric type of the lengths (exact for Fraction)
+    zero = G.total_length() - G.total_length()
     return [Segment(u, v, zero, zero + 1) for u, v in G.edges]

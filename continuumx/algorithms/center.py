@@ -1,6 +1,7 @@
 """Center of a continuous graph, and the local center of an edge.
 
-Unlike its discrete counterpart, the continuous center
+Unlike its discrete counterpart, the center of a continuous graph
+(Definition 4.7)
 
     C(𝒢) = { p ∈ 𝒢 : ecc(p) = rad(𝒢) }
 
@@ -28,7 +29,7 @@ Element = Union[Point, Segment]
 def _element(u: Hashable, v: Hashable, lo, hi) -> Element:
     """A point if the interval is degenerate, a segment otherwise."""
     if lo == hi:
-        return Point(u, v, lo)  # a vertex is normalized by Point
+        return Point(u, v, lo)  # θ = 0 or 1 gives a vertex, normalized by Point
     return Segment(u, v, lo, hi)
 
 
@@ -53,19 +54,19 @@ def local_center(
 
 
 def center(G, *, length: str = "length") -> List[Element]:
-    """Return the continuous center C(𝒢).
+    """Return the center C(𝒢) of the continuous graph.
 
     The center is the union, over the edges whose local radius equals
-    rad(𝒢), of their local centers.  Each
-    element of the list is a :class:`~continuumx.Point` when the minimum of an
-    envelope is attained at an isolated point, and a
-    :class:`~continuumx.Segment` when it is attained along a stretch of the
-    edge.
+    rad(𝒢), of their local centers.  Each element of the list is a
+    :class:`~continuumx.Point` when the minimum of an envelope is attained at
+    an isolated point, and a :class:`~continuumx.Segment` when it is attained
+    along a stretch of the edge.
 
     Complexity
     ----------
-    O(n m log n + m³), the cost of
-    :func:`~continuumx.radius`, since the envelopes are recomputed once.
+    A(n, m) = O(n m log n) for the distances between vertices, plus O(m³): the
+    envelopes are computed twice, once for the radius and once to read off the
+    centers.
 
     Examples
     --------

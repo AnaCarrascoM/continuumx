@@ -1,14 +1,13 @@
 """Piecewise-linear functions on [0,1], hat functions and envelopes.
 
-This module is the computational core of the library.  Every metric parameter
-of a continuous graph reduces to the same object: the eccentricity restricted
-to one edge is a piecewise-linear function of θ, and it is the *upper envelope*
-of m+1 **hat functions**, one per edge of the graph (the edge itself
-contributing two degenerate hats).  Once envelopes are
-available:
+This module is the computational core of the library.  Every parameter
+computed by the library reduces to the same object: the eccentricity
+restricted to one edge is a piecewise-linear function of θ, and it is the
+*upper envelope* of m+1 **hat functions**, one for each of the other m-1
+edges and two for the edge itself.  Once envelopes are available:
 
 * the diameter is the largest ceiling of any hat;
-* the eccentricity of a point is one evaluation;
+* the eccentricity of any point of an edge is one evaluation of its envelope;
 * the local radius and local center of an edge are the minimum of an envelope
   and the set where it is attained;
 * the radius and the center aggregate those over the edges.
@@ -25,19 +24,20 @@ __all__ = ["HatFunction", "PiecewiseLinear", "upper_envelope"]
 
 @dataclass(frozen=True)
 class HatFunction:
-    """A hat function on [0,1].
+    """A hat function on [0,1], as in Theorem 4.1 (1).
 
-    The function rises with slope ``slope`` up to θ = b, stays at the
-    *ceiling* ``h`` on [b, s], and falls with slope ``-slope`` afterwards:
+    The function rises with slope L = ``slope`` up to θ = b, stays at the
+    *ceiling* ``h`` on [b, s], and falls with slope -L afterwards, as in (4.13):
 
                    ⎧ h - (b - θ) L    if 0 ≤ θ ≤ b,
         hat(θ) =   ⎨ h                if b ≤ θ ≤ s,
                    ⎩ h - (θ - s) L    if s ≤ θ ≤ 1.
 
     A hat is degenerate when a sloped piece is missing (``b == 0`` or
-    ``s == 1``) or the interval [b, s] reduces to a point (``b == s``).  Degenerate
-    hats need no special treatment, which is why the valley (4.14) of an edge
-    against itself is represented as the envelope of two degenerate hats.
+    ``s == 1``) or the interval [b, s] reduces to a point (``b == s``).  The
+    valley (4.14) of an edge against itself needs no separate treatment: it is
+    the upper envelope of two degenerate hats, with (b, s) = (β, 1) and
+    (b, s) = (0, 1 - β).
 
     Attributes
     ----------
@@ -71,7 +71,8 @@ class HatFunction:
 
     def breakpoints(self) -> "PiecewiseLinear":
         """Return the hat as a :class:`PiecewiseLinear` function."""
-        zero = self.b - self.b  # keep the numeric type of the data
+        # 0 with the numeric type of the hat (exact for Fraction)
+        zero = self.b - self.b
         xs = [zero, self.b, self.s, zero + 1]
         ys = [self(x) for x in xs]
         return PiecewiseLinear(xs, ys)
@@ -186,8 +187,8 @@ def upper_envelope(hats: Iterable[HatFunction]) -> PiecewiseLinear:
     whole interval [b, s] where it attains its ceiling, and, because the
     difference *incoming minus envelope* is monotone on each side of [b, s]
     (its derivative lies in {0, L, 2L}), it dominates exactly on a single
-    interval [t_l, t_r] ⊇ [b, s].
-    Updating therefore amounts to finding two crossings and splicing.
+    interval [t_l, t_r] ⊇ [b, s].  Updating therefore amounts to finding two
+    crossings and splicing.
 
     Walking outwards from [b, s] to find each crossing only ever visits
     breakpoints that are about to be deleted, plus one; since a breakpoint is
@@ -212,7 +213,7 @@ def upper_envelope(hats: Iterable[HatFunction]) -> PiecewiseLinear:
         raise ValueError("all hat functions must share the same slope")
 
     first = hats[0]
-    # Derive 0 and 1 from the data, so that exact (Fraction) inputs stay exact.
+    # 0 with the numeric type of the hats (exact for Fraction)
     zero = (first.b + first.s) * 0
     xs: List[float] = [zero, first.b, first.s, zero + 1]
     ys: List[Any] = [first(x) for x in xs]
@@ -224,6 +225,7 @@ def upper_envelope(hats: Iterable[HatFunction]) -> PiecewiseLinear:
 
 
 def _dedup(xs: List[float], ys: List[Any]) -> Tuple[List[float], List[Any]]:
+    """Merge repeated abscissas, keeping the larger value."""
     out_x: List[float] = []
     out_y: List[Any] = []
     for x, y in zip(xs, ys):
@@ -237,6 +239,7 @@ def _dedup(xs: List[float], ys: List[Any]) -> Tuple[List[float], List[Any]]:
 
 
 def _eval(xs: List[float], ys: List[Any], theta: float):
+    """Evaluate at ``theta`` the piecewise-linear function given by ``xs``, ``ys``."""
     if theta <= xs[0]:
         return ys[0]
     if theta >= xs[-1]:
@@ -269,7 +272,9 @@ def _cross(
 
 
 def _insert(xs: List[float], ys: List[Any], hat: HatFunction):
-    """Splice ``hat`` into the envelope given by ``xs``/``ys``."""
+    """Insert ``hat`` into the envelope given by ``xs``, ``ys`` (Step 2 of
+    Algorithm 1): replace the envelope by the hat on the interval where the hat
+    lies above it."""
     b, s, h, L = hat.b, hat.s, hat.h, hat.slope
 
     # -- left crossing: the rising branch, of slope +L through (b, h) -------

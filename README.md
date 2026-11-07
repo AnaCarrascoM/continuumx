@@ -185,7 +185,14 @@ As listed in Section 5.8 of the master's thesis:
 * **Visualization** of continuous graphs, with the computed points and
   segments marked on them.
 * **Documentation**: a reference website generated with Sphinx.
-* **Real networks**: road networks from OpenStreetMap through OSMnx.
+* **Experimental tool**: testing conjectures on many graphs, such as whether
+  the reduction with pendant paths used for the diameter also works for the
+  radius (Open Problem 4.1).
+* **Augmentation problems**: how the diameter or the radius changes when new
+  edges are added, for instance which new road most reduces the worst-case
+  response time in the emergency network.
+* **Real networks**: road networks from OpenStreetMap through OSMnx, after
+  some adaptation.
 
 ## Citation
 

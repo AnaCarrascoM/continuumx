@@ -1,9 +1,10 @@
 """The :class:`ContinuousGraph` class.
 
-A continuous graph adds no combinatorial data to a graph: it is the continuous
-graph 𝒢 defined by a pair (G, ℓ), where G is a connected graph and ℓ assigns a
-length to each edge (Definition 4.1).  Accordingly, :class:`ContinuousGraph`
-is not a subclass of :class:`networkx.Graph` but a view over one.
+A continuous graph is determined by the edge-weighted graph (G, ℓ) that
+defines it (Definition 4.1), so no new combinatorial data is needed.
+Accordingly, :class:`ContinuousGraph` is not a subclass of
+:class:`networkx.Graph` but a view over one, which it neither copies nor
+modifies.
 """
 
 from __future__ import annotations
@@ -28,7 +29,7 @@ DEFAULT_TOL = 1e-9
 
 
 class ContinuousGraph:
-    """The continuous graph 𝒢 defined by (G, ℓ).
+    """The continuous graph 𝒢 defined by (G, ℓ) (Definition 4.1).
 
     Parameters
     ----------
@@ -38,8 +39,9 @@ class ContinuousGraph:
         Name of the edge attribute holding ℓ.  Defaults to ``"length"``.
         Edges lacking the attribute are given length ``1``.
     tol : float, optional
-        Tolerance used when comparing lengths and parameters.  Set it to ``0``
-        for exact arithmetic (see *Exact arithmetic* below).
+        Tolerance used when comparing lengths and parameters.  Defaults to
+        ``1e-9``; set it to ``0`` for exact arithmetic with
+        :class:`fractions.Fraction` lengths.
 
     Attributes
     ----------
@@ -50,28 +52,8 @@ class ContinuousGraph:
 
     Notes
     -----
-    .. _zero-length:
-
-    **Supported inputs.**  As in the master's thesis, graphs are simple, undirected and
-    connected, with positive edge lengths.  Version 0.1 rejects any other
-    input with an explicit error:
-
-    * *Directed graphs and multigraphs* are rejected.  Two parallel edges of
-      different lengths would define a continuous cycle C₂, but the triple
-      (u, v, θ) cannot name one of two parallel edges.  Supporting them would
-      mean adding an edge key to :class:`~continuumx.Point`.
-    * *Self-loops* are rejected for the same reason: both endpoints of a loop
-      are the same vertex.
-    * *Zero-length edges* are rejected.  As in Section 4.1.1 of the master's thesis, no
-      generality is lost: contracting a zero-length edge yields the same
-      continuous graph, and excluding them keeps θ = λ / ℓ well defined.
-
-    **Exact arithmetic.**  Every formula in the library uses only the four
-    arithmetic operations, ``min`` and ``max``, with no square roots or other
-    functions.  Consequently, if the edge lengths are
-    :class:`fractions.Fraction` objects, all computed parameters are exact
-    rationals and ``tol=0`` is safe.  This matters most for the center, whose
-    combinatorial structure is decided by equality tests between breakpoints.
+    Directed graphs, multigraphs, self-loops, and edges whose length is not
+    positive and finite are rejected with an explicit error.
 
     Examples
     --------
@@ -117,7 +99,7 @@ class ContinuousGraph:
         self._graph = graph
         self._length_attr = length
         self._tol = tol
-        self._dist_cache: Dict[Hashable, Dict[Hashable, float]] = {}
+        self._dist_cache: Dict[Hashable, Dict[Hashable, Any]] = {}
 
         self._edges: List[Tuple[Hashable, Hashable]] = []
         self._lengths: Dict[Tuple[Hashable, Hashable], Any] = {}
@@ -139,7 +121,7 @@ class ContinuousGraph:
             if value <= 0:
                 raise InvalidLengthError(
                     f"edge ({u!r}, {v!r}) has length {value!r}; lengths must be "
-                    "strictly positive (see the note on zero-length edges)"
+                    "strictly positive"
                 )
             if isinstance(value, float) and not math.isfinite(value):
                 raise InvalidLengthError(
@@ -150,9 +132,9 @@ class ContinuousGraph:
             self._lengths[(a, b)] = value
 
         if self._graph.number_of_edges() and not saw_attribute:
-            # A very common mistake: the graph was built with `weight=`, the
-            # networkx default, but the library looks for `length`.  Silently
-            # falling back to unit lengths would return plausible wrong numbers.
+            # If the graph was built with weight=, the NetworkX default, no
+            # edge carries the length attribute, and falling back to unit
+            # lengths would silently give wrong values.
             has_weight = any("weight" in d for _, _, d in self._graph.edges(data=True))
             if has_weight and self._length_attr != "weight":
                 raise InvalidLengthError(
@@ -167,7 +149,7 @@ class ContinuousGraph:
 
     @property
     def graph(self) -> nx.Graph:
-        """The underlying :class:`networkx.Graph` (read-only by contract)."""
+        """The underlying :class:`networkx.Graph`."""
         return self._graph
 
     @property
@@ -235,9 +217,9 @@ class ContinuousGraph:
         return total
 
     def offset(self, p: Point):
-        """Return the absolute offset λ = θ ℓ(uv).
+        """Return the offset λ = θ ℓ(uv), measured from the first endpoint ``p.u``.
 
-        For a vertex the offset is ``0``.
+        A vertex is stored as ``(w, w, 0)``, with no edge, so its offset is ``0``.
         """
         if p.is_vertex:
             return 0.0
@@ -262,10 +244,13 @@ class ContinuousGraph:
             Endpoints of the edge.  Omit ``v`` (or pass ``v == u``) for the
             vertex ``u``.
         theta : float, optional
-            Normalized position along ``uv``, measured from ``u``.
+            Parameter θ ∈ [0, 1] of the point along ``uv``, measured from
+            ``u``.
         offset : float, optional
-            Absolute distance from ``u`` along ``uv``; converted to ``theta``.
-            Exactly one of ``theta`` and ``offset`` may be given.
+            Distance λ = ℓ(u, p) from ``u`` along ``uv``, in the units of the
+            edge lengths; converted to θ = λ / ℓ(uv).  At most one of
+            ``theta`` and ``offset`` may be given; if neither is, the point is
+            the vertex ``u``.
 
         Examples
         --------
@@ -289,7 +274,8 @@ class ContinuousGraph:
                     f"offset {offset!r} is outside [0, {length!r}], the length "
                     f"of edge ({u!r}, {v!r})"
                 )
-            zero = length - length  # numeric type of the lengths (exact for Fraction)
+            # 0 with the numeric type of the lengths (exact for Fraction)
+            zero = length - length
             theta = min(max(offset / length, zero), zero + 1)
         elif theta is None:
             theta = length - length
@@ -307,11 +293,13 @@ class ContinuousGraph:
         return p
 
     def same_point(self, p: Point, q: Point) -> bool:
-        """Whether ``p`` and ``q`` denote the same point of 𝒢.
+        """Whether ``p`` and ``q`` are the same point of 𝒢.
 
-        Structural equality already identifies the triples that describe the
-        same point (see :class:`~continuumx.Point`); this method additionally
-        absorbs floating-point noise, using the graph tolerance.
+        ``p == q`` already recognizes different descriptions of the same point,
+        since points are stored in canonical form (see
+        :class:`~continuumx.Point`).  This method also accepts points whose
+        distance is at most the graph tolerance, to allow for rounding errors
+        with ``float`` lengths.
         """
         from continuumx.algorithms.distance import distance
 
@@ -320,16 +308,17 @@ class ContinuousGraph:
         return distance(self, p, q) <= self._tol
 
     # ------------------------------------------------------------------
-    # Discrete distances
+    # Distances between vertices
     # ------------------------------------------------------------------
 
-    def distances_from(self, source: Hashable) -> Dict[Hashable, float]:
-        """Single-source shortest-path distances in G, cached.
+    def distances_from(self, source: Hashable) -> Dict[Hashable, Any]:
+        """Return the distances in G from ``source`` to every vertex.
 
-        The result is memoized, so repeated queries from the same source are
-        free.  Prefer this to :meth:`precompute` when only a few sources are
-        needed: computing the full matrix eagerly costs O(n²) memory
-        even for a single distance query.
+        They are computed with Dijkstra's algorithm the first time and stored,
+        so later calls from the same source do not compute them again.  When
+        only a few sources are needed, this is cheaper than :meth:`precompute`,
+        which computes and stores the distances from every vertex, using O(n²)
+        memory.
         """
         cached = self._dist_cache.get(source)
         if cached is None:
@@ -346,18 +335,21 @@ class ContinuousGraph:
         return self.distances_from(u)[v]
 
     def precompute(self) -> "ContinuousGraph":
-        """Fill the all-pairs distance cache and return ``self``.
+        """Compute the distances between all pairs of vertices and return ``self``.
 
-        Global algorithms (:func:`~continuumx.diameter`,
-        :func:`~continuumx.radius`, :func:`~continuumx.center`) call this
-        themselves; it is exposed so that timings can separate the
-        O(n m log n) shortest-path stage from the continuous stage.
+        The global algorithms (:func:`~continuumx.diameter`,
+        :func:`~continuumx.diametral_pair`, :func:`~continuumx.radius`,
+        :func:`~continuumx.center`) call this themselves.  It is public so that
+        timings can separate the shortest-path stage, which takes A(n, m) =
+        O(n m log n) time with Dijkstra's algorithm, from the continuous stage.
         """
         for node in self._graph.nodes():
             self.distances_from(node)
         return self
 
     def _weight_function(self):
+        """Return the edge-weight function for NetworkX's Dijkstra: the length
+        attribute of each edge, or 1 if it is missing."""
         attr = self._length_attr
 
         def weight(_u, _v, data):
@@ -376,11 +368,11 @@ class ContinuousGraph:
 
 
 def as_continuous(graph, length: str = "length", tol: float = DEFAULT_TOL):
-    """Coerce ``graph`` to a :class:`ContinuousGraph`.
+    """Return ``graph`` as a :class:`ContinuousGraph`.
 
-    Accepts a :class:`ContinuousGraph` (returned unchanged, so that its caches
-    are reused) or a :class:`networkx.Graph` (wrapped).  Every public algorithm
-    of the library funnels its input through this function.
+    A :class:`ContinuousGraph` is returned unchanged, so that the distances it
+    has already computed are reused; a :class:`networkx.Graph` is wrapped in a
+    new one.  Every public function of the library calls this on its input.
     """
     if isinstance(graph, ContinuousGraph):
         return graph

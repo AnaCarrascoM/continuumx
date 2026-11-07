@@ -474,7 +474,7 @@ class TestBasicProperties:
         assert cx.distance(k4, k4.point("a"), far) == F(3, 2)
 
     def test_radius_is_not_comparable_with_the_discrete_one(self, tree, emergency):
-        """rem:radius-incomparable."""
+        """prop:discrete-vs-continuous: no such monotonicity holds for the radius."""
         assert cx.radius(tree) == nx.radius(tree.graph) == 3
         assert cx.radius(emergency) < nx.radius(emergency.graph, weight="length")
         c3 = cycle(3)
@@ -614,7 +614,7 @@ class TestAlgorithmicComputation:
         assert value == F(75, 4) and where == [(F(1, 4), F(1, 4))]
 
     def test_maximum_distance_between_two_edges(self, emergency):
-        """ex:max-edge-edge: dist_max(bc, de) = 7/2, attained on bc exactly on
+        """cor:max-edge-edge: dist_max(bc, de) = 7/2, attained on bc exactly on
         the interval [b_wz, s_wz] = [1/6, 1/2]."""
         ((b, s, h),) = hat_of(emergency, ("b", "c"), ("d", "e"))
         assert (b, s, h) == (F(1, 6), F(1, 2), F(7, 2))
@@ -622,7 +622,7 @@ class TestAlgorithmicComputation:
         assert emergency.edge_length("b", "c") * s == F(3, 2)
 
     def test_the_farthest_point_moves_along_de(self, emergency):
-        """ex:max-edge-edge: the farthest point of de moves from d to e."""
+        """cor:max-edge-edge: the farthest point of de moves from d to e."""
         G = emergency
         ends = [
             cx.farthest_point_on_edge(G, G.point("b", "c", offset=o), "d", "e")

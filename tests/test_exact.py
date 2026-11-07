@@ -23,8 +23,8 @@ def _graph(edges):
 
 
 @pytest.fixture
-def coding_example():
-    # The running example of the coding chapter.
+def mixed_center_graph():
+    # A graph whose center is three stretches of edges.
     return _graph(
         [
             ("a", "b", 2),
@@ -48,14 +48,14 @@ def _is_exact(x):
     return isinstance(x, (F, int)) and not isinstance(x, bool)
 
 
-def test_parameters_are_exact(coding_example):
-    G = coding_example
+def test_parameters_are_exact(mixed_center_graph):
+    G = mixed_center_graph
     assert cx.diameter(G) == F(21, 2) and _is_exact(cx.diameter(G))
     assert cx.radius(G) == F(15, 2) and _is_exact(cx.radius(G))
 
 
-def test_center_is_exact(coding_example):
-    segs = cx.center(coding_example)
+def test_center_is_exact(mixed_center_graph):
+    segs = cx.center(mixed_center_graph)
     assert [(s.u, s.v, s.theta_min, s.theta_max) for s in segs] == [
         ("b", "c", F(0), F(1)),
         ("b", "e", F(0), F(1, 4)),

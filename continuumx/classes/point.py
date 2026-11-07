@@ -9,15 +9,15 @@ same point whenever
 and, in addition, every triple with λ ∈ {0, ℓ(uv)} describes a *vertex*, which
 is shared by all the edges incident to it.
 
-This module stores the **normalized** parameter θ = λ / ℓ(uv) ∈ [0, 1] rather
+This module stores the normalized parameter θ = λ / ℓ(uv) ∈ [0, 1] rather
 than λ, for two reasons:
 
-* it is the parametrization used throughout Chapter 4 of the master's thesis, from
-  (4.1) on, so code and formulas read alike;
-* it is *intrinsic*: a triple (u, v, θ) can be validated without knowing
-  ℓ(uv), whereas (u, v, λ) cannot.
+* it is the parametrization used throughout Chapter 4 of the master's thesis,
+so code and formulas read alike;
+* it is intrinsic: a triple (u, v, θ) can be validated without knowing
+ℓ(uv), whereas (u, v, λ) cannot.
 
-The absolute offset λ is recovered with
+The offset λ is recovered with
 :meth:`~continuumx.classes.continuous_graph.ContinuousGraph.offset`.
 """
 
@@ -34,9 +34,9 @@ __all__ = ["Point", "Segment", "node_key", "orient"]
 def node_key(node: Hashable) -> Tuple[str, str]:
     """Return a total, deterministic sort key for an arbitrary graph node.
 
-    ``networkx`` nodes are only required to be hashable, not orderable, and a
+    NetworkX nodes are only required to be hashable, not orderable, and a
     graph may legitimately mix types (``0`` and ``"a"``).  Canonical
-    orientation of an edge nevertheless needs *some* total order; the exact
+    orientation of an edge nevertheless needs some total order; the exact
     order is irrelevant as long as it is deterministic within a run.
     """
     return (type(node).__name__, repr(node))
@@ -59,16 +59,16 @@ class Point:
         Endpoints of the edge containing the point.  Passing ``u == v``
         denotes the *vertex* ``u`` itself.
     theta : float
-        Normalized position along the edge, measured from ``u``:
-        ``theta == 0`` is ``u`` and ``theta == 1`` is ``v``.
+        Parameter θ ∈ [0, 1] of the point along the edge, measured from
+        ``u``: ``theta == 0`` is ``u`` and ``theta == 1`` is ``v``.
 
     Notes
     -----
-    Instances are normalized on construction, so that structurally distinct
-    triples describing the same point of 𝒢 compare equal and hash equally:
+    Instances are normalized on construction, so that different triples
+    describing the same point of 𝒢 compare equal and hash equally:
 
-    * ``Point(v, u, t)`` becomes ``Point(u, v, 1 - t)`` for the canonical
-      endpoint order given by :func:`node_key`;
+    * ``Point(v, u, t)`` becomes ``Point(u, v, 1 - t)`` when ``u`` precedes
+      ``v`` in the canonical order given by :func:`node_key`;
     * ``Point(u, v, 0)`` and ``Point(u, w, 0)`` both become ``Point(u, u, 0)``,
       the vertex ``u``.
 
@@ -95,13 +95,14 @@ class Point:
 
     def __post_init__(self) -> None:
         theta = self.theta
-        zero = theta * 0  # 0 of the same numeric type (float, Fraction, ...)
+        # 0 with the numeric type of theta (exact for Fraction)
+        zero = theta * 0
         if theta < zero or theta > zero + 1:
             raise InvalidPointError(
                 f"theta must lie in [0, 1], got {theta!r}. "
                 "theta is the normalized position along the edge; use "
                 "ContinuousGraph.point(u, v, offset=...) to build a point from "
-                "an absolute distance."
+                "its distance to u."
             )
         if self.u == self.v:
             object.__setattr__(self, "theta", zero)
@@ -135,7 +136,7 @@ class Point:
         return self.u == self.v
 
     @property
-    def vertex(self) -> Hashable:
+    def vertex(self) -> Optional[Hashable]:
         """The vertex this point is, or ``None`` if it is interior to an edge."""
         return self.u if self.is_vertex else None
 
@@ -158,11 +159,10 @@ class Point:
 class Segment:
     """A closed sub-segment of a single edge of a continuous graph.
 
-    Sets such as the continuous center or the set of diametral points are in
-    general *infinite* — a union of sub-paths — so the library needs a type for
-    them.  A :class:`Segment` is the portion of the edge ``uv`` between
-    ``theta_min`` and ``theta_max``.  A degenerate segment
-    (``theta_min == theta_max``) is a single point.
+    The continuous center is in general infinite, a union of stretches of
+    edges, so the library needs a type for it.  A :class:`Segment` is the
+    portion of the edge ``uv`` between ``theta_min`` and ``theta_max``.  A
+    degenerate segment (``theta_min == theta_max``) is a single point.
 
     Examples
     --------
@@ -179,6 +179,7 @@ class Segment:
 
     def __post_init__(self) -> None:
         lo, hi = self.theta_min, self.theta_max
+        # 0 with the numeric type of the parameters (exact for Fraction)
         zero = lo * 0
         if lo > hi:
             lo, hi = hi, lo
@@ -191,9 +192,8 @@ class Segment:
             object.__setattr__(self, "theta_max", zero)
             return
         if lo == hi:
-            # A degenerate segment is a point: reuse the point normalization so
-            # that a center reported at a vertex is the same object however it
-            # was found.
+            # A degenerate segment is a single point: normalize it as a Point,
+            # so that equal points give equal segments.
             p = Point(self.u, self.v, lo)
             object.__setattr__(self, "u", p.u)
             object.__setattr__(self, "v", p.v)

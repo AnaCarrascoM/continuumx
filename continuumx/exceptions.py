@@ -1,12 +1,16 @@
 """Exception hierarchy of :mod:`continuumx`.
 
-All exceptions raised by the library derive from :class:`ContinuumXError`, so
-that user code can catch them uniformly::
+Invalid inputs (graphs outside the supported class, inadmissible lengths and
+triples that are not points of the graph) raise subclasses of
+:class:`ContinuumXError`, so that user code can catch them uniformly::
 
     try:
         G = cx.ContinuousGraph(g)
     except cx.ContinuumXError:
         ...
+
+Other misuses, such as asking for the length of a pair that is not an edge,
+raise the standard :class:`ValueError` or :class:`TypeError`.
 """
 
 __all__ = [
@@ -33,18 +37,16 @@ class NotConnectedError(ContinuumXError):
 class InvalidLengthError(ContinuumXError):
     """An edge carries a length that is not admissible.
 
-    Lengths must be strictly positive and finite.  See
-    :ref:`the note on zero-length edges <zero-length>` in
-    :class:`~continuumx.classes.continuous_graph.ContinuousGraph`.
+    Lengths must be strictly positive and finite.
     """
 
 
 class UnsupportedGraphError(ContinuumXError):
     """The input graph is outside the class supported by this version.
 
-    Version 0.1 supports simple, undirected, connected graphs only:
-    directed graphs, multigraphs and self-loops are rejected explicitly
-    rather than handled silently.
+    Version 0.1 supports simple, undirected, connected graphs with at least
+    one vertex only: directed graphs, multigraphs, self-loops and graphs
+    without vertices are rejected explicitly rather than handled silently.
     """
 
 

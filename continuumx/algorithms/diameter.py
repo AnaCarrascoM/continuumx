@@ -5,8 +5,8 @@ determined by finitely many candidates, given by the hat functions of
 :mod:`continuumx.algorithms.eccentricity` (Corollaries 4.1 and 4.2):
 
     diam(𝒢) = max over p ∈ 𝒢 of ecc(p)
-            = max over edges e, hats k, and θ ∈ [0, 1] of hat_k^e(θ)
-            = max over edges e and hats k of h_k^e,
+            = max over edges uv and θ ∈ [0, 1] of ecc(x_θ, wz), for every edge wz
+            = max over pairs of edges (uv, wz) of the ceiling h_wz,
 
 because the maximum of a hat function is its ceiling.  The diameter is
 therefore the largest ceiling among the m(m+1) hats of the graph, with no case
@@ -26,11 +26,12 @@ __all__ = ["diameter", "diametral_pair"]
 
 
 def diameter(G, *, length: str = "length"):
-    """Return the continuous diameter diam(𝒢).
+    """Return the diameter diam(𝒢) of the continuous graph.
 
     Complexity
     ----------
-    O(n m log n) for the all-pairs shortest paths plus O(m²) for the ceilings.
+    A(n, m) = O(n m log n) for the distances between vertices, plus O(m²) for
+    the ceilings.
 
     Notes
     -----
@@ -43,7 +44,7 @@ def diameter(G, *, length: str = "length"):
     >>> import networkx as nx, continuumx as cx
     >>> cx.diameter(cx.ContinuousGraph(nx.cycle_graph(5)))   # perimeter / 2
     2.5
-    >>> cx.diameter(cx.ContinuousGraph(nx.path_graph(4)))    # a tree: discrete
+    >>> cx.diameter(cx.ContinuousGraph(nx.path_graph(4)))    # a tree (Prop. 4.4)
     3.0
     """
     G = as_continuous(G, length=length)
@@ -56,17 +57,15 @@ def diameter(G, *, length: str = "length"):
 def diametral_pair(G, *, length: str = "length") -> Tuple[Point, Point]:
     """Return one diametral pair (p, q), i.e. with ``distance(p, q) == diameter``.
 
-    In general there are infinitely many; this returns one witness, as in
-    Step 3 of the diameter algorithm of Chen and Garfinkel.  Let uv be the edge
-    and wz the witness edge of the highest hat.  The first point x* is the
-    point of uv of parameter θ* = b_wz, the left end of the interval
-    [b_wz, s_wz] where the hat attains its ceiling; the second is the point of
-    wz farthest from x*.
-    For n ≥ 3, the pairs (uv, uv) are omitted, since for every edge uv there
-    is a distinct edge vw with d_max(uv, uv) ≤ d_max(uv, vw); this also keeps
-    :func:`farthest_point_on_edge` within the hypotheses of the lemma it
-    implements (x* not interior to wz).  Returns a pair of copies of the only
-    vertex when the graph has no edges.
+    In general there are infinitely many; this returns one of them, as in
+    Step 3 of the diameter algorithm of Section 4.4.2 (Chen and Garfinkel).
+    Let uv be the edge of the hat with the largest ceiling and wz the edge it
+    comes from.  The first point x* is the point of uv of parameter θ* = b_wz,
+    the left end of the interval [b_wz, s_wz] where the hat attains its
+    ceiling; the second is the point of wz farthest from x*.  For n ≥ 3, the
+    pairs (uv, uv) are omitted, as in Section 4.4.2: for every edge uv there is
+    a distinct edge vw with d_max(uv, uv) ≤ d_max(uv, vw).  Returns a pair of
+    copies of the only vertex when the graph has no edges.
 
     Examples
     --------
