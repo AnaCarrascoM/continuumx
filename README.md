@@ -4,10 +4,9 @@
 
 `continuumx` is a Python library for **continuous graphs**, built on top of
 [NetworkX](https://networkx.org/). In a combinatorial graph, distances are
-measured only between vertices. In a continuous graph, each edge is replaced by
-a segment of its length, and the segments are glued at their endpoints, so
-distances are measured between any two points of the graph, including points
-inside the edges.
+measured only between vertices. In a continuous graph, each edge is identified
+with a segment whose length is given by its weight, and distances are measured
+between any two points of the graph.
 
 It accompanies the master's thesis *Computing Distances in Combinatorial and
 Continuous Graphs* (A. Carrasco Martín, Universidad de Sevilla, 2026), whose
