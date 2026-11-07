@@ -18,7 +18,7 @@ connected graphs with positive edge lengths.
 
 ## Installation
 
-`continuumx` requires Python 3.9 or later and NetworkX 3.0 or later. Install it
+`continuumx` requires Python 3.10 or later and NetworkX 3.0 or later. Install it
 directly from the repository:
 
 ```bash
