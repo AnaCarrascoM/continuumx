@@ -1,7 +1,7 @@
 """Shared fixtures and the brute-force oracle used across the test suite.
 
 The oracle is deliberately *independent* of the library: it subdivides every
-edge into ``k`` equal pieces and runs plain ``networkx`` shortest paths on the
+edge into ``k`` equal pieces and runs plain NetworkX shortest paths on the
 resulting weighted graph.  Distances between sampled points are then exact
 continuous distances, and the sampled diameter and radius bracket the true ones
 with an error of at most ``max_edge_length / k``.
@@ -112,7 +112,7 @@ def triangle_1_1_5() -> cx.ContinuousGraph:
 
 @pytest.fixture
 def three_stretch_center_network() -> cx.ContinuousGraph:
-    """A weighted network whose continuous center is a union of three sub-paths."""
+    """A weighted network whose center is a union of three sub-paths."""
     g = nx.Graph()
     for u, v, ell in [
         ("a", "b", 2.0),
@@ -127,7 +127,7 @@ def three_stretch_center_network() -> cx.ContinuousGraph:
 
 @pytest.fixture
 def interior_center_network() -> cx.ContinuousGraph:
-    """A weighted network whose continuous center is a single interior point.
+    """A weighted network whose center is a single interior point.
 
     It contains the cycle ``b c d e b`` and a pendant edge ``ab``; the center
     lies on ``ab``, at distance 4.75 from ``a``, and no vertex attains the

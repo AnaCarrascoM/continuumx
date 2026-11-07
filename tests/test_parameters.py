@@ -198,7 +198,7 @@ def test_cycle_radius_and_center(n):
 
 
 def test_center_may_be_interior_to_an_edge(interior_center_network):
-    """Unlike the discrete center, the continuous center need not meet V."""
+    """Unlike the discrete center, the center of a continuous graph need not meet V."""
     G = interior_center_network
     (c,) = cx.center(G)
     assert isinstance(c, cx.Point) and not c.is_vertex

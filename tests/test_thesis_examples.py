@@ -571,11 +571,9 @@ class TestPropositions:
 # ---------------------------------------------------------------------------
 
 
-def hat_of(G, edge, witness):
-    """The hat of ``edge`` associated with the edge ``witness``, as (b, s, h)."""
-    out = [
-        (h.b, h.s, h.h) for h, w in cx.hat_functions(G, *edge) if set(w) == set(witness)
-    ]
+def hat_of(G, edge, wz):
+    """The hat of ``edge`` that comes from the edge ``wz``, as (b, s, h)."""
+    out = [(h.b, h.s, h.h) for h, w in cx.hat_functions(G, *edge) if set(w) == set(wz)]
     return out
 
 
@@ -599,9 +597,9 @@ class TestAlgorithmicComputation:
             ("a", "b"): [(1, 1, 15)],
             ("a", "d"): [(1, 1, 5), (0, 0, 5)],
         }
-        for witness, want in table.items():
-            got = sorted(hat_of(logistics, ("a", "d"), witness))
-            assert got == sorted((F(b), F(s), F(h)) for b, s, h in want), witness
+        for wz, want in table.items():
+            got = sorted(hat_of(logistics, ("a", "d"), wz))
+            assert got == sorted((F(b), F(s), F(h)) for b, s, h in want), wz
         # all of them have slope l(ad) = 5
         assert {h.slope for h, _ in cx.hat_functions(logistics, "a", "d")} == {5}
 
@@ -685,8 +683,8 @@ class TestAlgorithmicComputation:
             ("a", "f"): [(F(0), F(0), F(4))],
             ("c", "g"): [(F(1), F(1), F(4))],
         }
-        for witness, hats in want.items():
-            assert sorted(hat_of(emergency, ("d", "e"), witness)) == hats, witness
+        for wz, hats in want.items():
+            assert sorted(hat_of(emergency, ("d", "e"), wz)) == hats, wz
 
     def test_envelope_of_the_edge_de(self, emergency):
         """ex:emergency-radius-alg: the final envelope is max{4 - theta, 3 + theta},
