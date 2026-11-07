@@ -209,9 +209,9 @@ def test_center_may_be_interior_to_an_edge(interior_center_network):
     )
 
 
-def test_center_may_be_a_union_of_subpaths(emergency_network):
+def test_center_may_be_a_union_of_subpaths(three_stretch_center_network):
     """It need not be finite either: here it is three sub-paths."""
-    G = emergency_network
+    G = three_stretch_center_network
     segments = cx.center(G)
     assert len(segments) == 3
     assert any(not seg.is_point for seg in segments)
@@ -229,16 +229,16 @@ def test_center_may_be_a_union_of_subpaths(emergency_network):
             assert attains == reported
 
 
-def test_local_radius_never_beats_the_global_one(emergency_network):
-    G = emergency_network
+def test_local_radius_never_beats_the_global_one(three_stretch_center_network):
+    G = three_stretch_center_network
     rad = cx.radius(G)
     for u, v in G.edges:
         assert cx.local_radius(G, u, v) >= rad - 1e-9
     assert min(cx.local_radius(G, u, v) for u, v in G.edges) == pytest.approx(rad)
 
 
-def test_local_center_of_an_edge(emergency_network):
-    G = emergency_network
+def test_local_center_of_an_edge(three_stretch_center_network):
+    G = three_stretch_center_network
     for u, v in G.edges:
         for x in cx.local_center(G, u, v):
             a, b, lo, _ = as_interval(x)
@@ -246,3 +246,26 @@ def test_local_center_of_an_edge(emergency_network):
             assert cx.eccentricity(G, p) == pytest.approx(
                 cx.local_radius(G, u, v), abs=1e-9
             )
+
+
+def test_edge_orientation_is_respected():
+    """θ is measured from the first vertex given, whatever the order of the
+    edge in the graph: on the emergency network of the master's thesis, the
+    local center of af is a in both orientations."""
+    g = nx.Graph()
+    for u, v, ell in [
+        ("a", "b", 1),
+        ("b", "c", 3),
+        ("c", "d", 1),
+        ("d", "e", 1),
+        ("e", "a", 1),
+        ("a", "f", 2),
+        ("c", "g", 2),
+    ]:
+        g.add_edge(u, v, length=float(ell))
+    G = cx.ContinuousGraph(g)
+    for u, v in [("a", "f"), ("f", "a")]:
+        assert cx.local_center(G, u, v) == [cx.Point.at_vertex("a")]
+        f = cx.eccentricity_function(G, u, v)
+        assert f(0.0) == pytest.approx(cx.eccentricity(G, cx.Point.at_vertex(u)))
+        assert f(1.0) == pytest.approx(cx.eccentricity(G, cx.Point.at_vertex(v)))

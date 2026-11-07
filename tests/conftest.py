@@ -111,7 +111,7 @@ def triangle_1_1_5() -> cx.ContinuousGraph:
 
 
 @pytest.fixture
-def emergency_network() -> cx.ContinuousGraph:
+def three_stretch_center_network() -> cx.ContinuousGraph:
     """A weighted network whose continuous center is a union of three sub-paths."""
     g = nx.Graph()
     for u, v, ell in [

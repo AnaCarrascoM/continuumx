@@ -1,6 +1,7 @@
 """Eccentricity of a point of a continuous graph.
 
-The eccentricity of a point is a maximum over the whole continuum,
+The eccentricity of a point (Definition 4.4) is a maximum over the whole
+continuum,
 
     ecc(p) = max { d_𝒢(p, q) : q ∈ 𝒢 },
 
@@ -8,9 +9,10 @@ but it is computable because the maximum over a single edge, the eccentricity
 of p relative to that edge (Definition 4.8), has a closed form.  The global
 maximum is then a maximum over the m edges, as in (4.11).
 
-Reading the eccentricity as a function of the position of p along a fixed edge
-gives the hat functions of
-:mod:`continuumx.structures.piecewise`, from which the diameter, the radius and
+Read as functions of the position of p along a fixed edge, the eccentricities
+relative to the edges are the hat functions of
+:mod:`continuumx.structures.piecewise` (Theorem 4.1), and their upper envelope
+is the eccentricity along that edge, from which the diameter, the radius and
 the center all follow.
 """
 
@@ -50,7 +52,7 @@ def eccentricity_to_edge(
     needed.
 
     *The point is interior to* uv.  The formula above no longer applies,
-    because a path from p to a point of its own edge may stay inside the edge.
+    because a walk from p to a point of its own edge may stay inside the edge.
     Writing D = d_G(u, v) and L = ℓ(uv), the eccentricity relative to uv is the
     valley (4.14), which can be written as
 
@@ -74,15 +76,18 @@ def farthest_point_on_edge(
 ) -> Point:
     """Return a point of the edge ``uv`` at maximum distance from ``p``.
 
-    The value of the maximum is :func:`eccentricity_to_edge`; this function
-    returns a point attaining it, which is what witnesses a diametral pair.
+    If ``p`` is not interior to ``uv``, it is the point of parameter (4.10)
+    (Lemma 4.2); otherwise it follows from the valley (4.14).
+    :func:`~continuumx.diametral_pair` uses it to find the second point of the
+    pair.
     """
     G = as_continuous(G, length=length)
     G.check_point(p)
     a, b, _ = orient(u, v)
     ell = G.edge_length(a, b)
-    zero = ell - ell  # 0 and 1 of the same numeric type as the lengths,
-    one = zero + 1  # so that Fraction inputs never meet a float
+    # 0 and 1 with the numeric type of the lengths (exact for Fraction)
+    zero = ell - ell
+    one = zero + 1
 
     if (not p.is_vertex) and (p.u, p.v) == (a, b):
         # The valley (4.14), with β = (ℓ(uv) + d_G(u, v)) / (2 ℓ(uv)).
@@ -97,17 +102,17 @@ def farthest_point_on_edge(
     d_a = distance_to_vertex(G, p, a)
     d_b = distance_to_vertex(G, p, b)
     mu = (d_b + ell - d_a) / (2 * ell)
-    mu = min(max(mu, zero), one)
+    mu = min(max(mu, zero), one)  # guard against rounding
     return Point(a, b, mu)
 
 
 def eccentricity(G, p: Point, *, length: str = "length"):
-    """Return the continuous eccentricity ecc(p).
+    """Return the eccentricity ecc(p) of a point.
 
     Complexity
     ----------
-    O(m) once the shortest-path distances from the endpoints of the
-    edge containing ``p`` are cached.
+    O(m) once the distances between vertices from the endpoints of the edge
+    containing ``p`` are available.
 
     Examples
     --------
@@ -126,11 +131,11 @@ def eccentricity(G, p: Point, *, length: str = "length"):
 def hat_functions(
     G, u: Hashable, v: Hashable, *, length: str = "length"
 ) -> List[Tuple[HatFunction, Tuple]]:
-    """Return the m+1 hat functions of the edge uv.
+    """Return the m+1 hat functions of the edge uv, with θ measured from ``u``.
 
-    Each entry is a pair ``(hat, witness)`` where ``hat`` describes
-    θ ↦ ecc(x_θ, wz) for one edge wz, and ``witness`` is that edge (the edge
-    uv itself contributes two degenerate hats, and is reported twice).
+    Each entry is a pair ``(hat, wz)``: ``hat`` describes θ ↦ ecc(x_θ, wz),
+    and ``wz`` is the edge it comes from (the edge uv itself contributes two
+    degenerate hats, and appears twice).
 
     Notes
     -----
@@ -151,17 +156,18 @@ def hat_functions(
     Representing it this way keeps a single code path downstream.
     """
     G = as_continuous(G, length=length)
-    a, b, _ = orient(u, v)
+    a, b = u, v  # θ is measured from u, as in (4.1)
     L = G.edge_length(a, b)
-    zero = L - L  # 0 and 1 of the same numeric type as the lengths,
-    one = zero + 1  # so that Fraction inputs never meet a float
+    # 0 and 1 with the numeric type of the lengths (exact for Fraction)
+    zero = L - L
+    one = zero + 1
     d_a = G.distances_from(a)
     d_b = G.distances_from(b)
 
     hats: List[Tuple[HatFunction, Tuple]] = []
 
     for w, z, ell in G.iter_edges_with_length():
-        if (w, z) == (a, b):
+        if {w, z} == {a, b}:
             D = d_a[b]
             ceiling = (L + D) / 2
             theta_lo = (L - D) / (2 * L)
@@ -171,10 +177,12 @@ def hat_functions(
             continue
         theta_w = (L + d_b[w] - d_a[w]) / (2 * L)
         theta_z = (L + d_b[z] - d_a[z]) / (2 * L)
-        theta_w = min(max(theta_w, zero), one)  # guard against rounding only
+        # in [0, 1] by Lemma 4.1; guard against rounding
+        theta_w = min(max(theta_w, zero), one)
         theta_z = min(max(theta_z, zero), one)
-        if theta_w <= theta_z:  # then the min in (4.12) is
-            lo, hi = theta_w, theta_z  # d(v, w) + d(u, z)
+        # then the min in (4.12) is d(v, w) + d(u, z)
+        if theta_w <= theta_z:
+            lo, hi = theta_w, theta_z
             cross = d_b[w] + d_a[z]
         else:
             lo, hi = theta_z, theta_w
@@ -188,14 +196,14 @@ def hat_functions(
 def eccentricity_function(
     G, u: Hashable, v: Hashable, *, length: str = "length"
 ) -> PiecewiseLinear:
-    """Return θ ↦ ecc(x_θ) along the edge ``uv``.
+    """Return θ ↦ ecc(x_θ) along the edge ``uv``, with θ measured from ``u``.
 
     The result is the upper envelope of the m+1 hat functions of the
     edge; the local radius and the local center of the edge are read off it.
 
     Complexity
     ----------
-    O(m²) once the discrete distances are available: m+1 insertions into
+    O(m²) once the distances between vertices are available: m+1 insertions into
     the envelope, each O(m) (see :func:`~continuumx.upper_envelope`).
 
     Examples
