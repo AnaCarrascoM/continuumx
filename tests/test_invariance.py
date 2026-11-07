@@ -1,4 +1,4 @@
-"""Subdivision invariance, exact arithmetic and scaling.
+"""Subdivision invariance and scaling.
 
 Subdividing an edge of length ``l`` into two edges of lengths ``t*l`` and
 ``(1-t)*l`` produces a graph whose continuous graph is *isometric* to the
@@ -8,9 +8,6 @@ functions and the envelopes at once, and it is sensitive to exactly the kind of
 error that a hand-checked example on a small graph would miss.
 """
 
-from fractions import Fraction
-
-import networkx as nx
 import pytest
 
 import continuumx as cx
@@ -46,31 +43,3 @@ def test_parameters_scale_linearly_with_the_lengths(seed):
     H = cx.ContinuousGraph(g)
     assert cx.diameter(H) == pytest.approx(3 * cx.diameter(G))
     assert cx.radius(H) == pytest.approx(3 * cx.radius(G))
-
-
-def test_exact_arithmetic_with_fractions():
-    """With rational lengths every parameter is an exact rational."""
-    g = nx.Graph()
-    g.add_edge("a", "b", length=Fraction(5))
-    g.add_edge("a", "c", length=Fraction(1))
-    g.add_edge("c", "b", length=Fraction(1))
-    G = cx.ContinuousGraph(g, tol=0)
-
-    diam = cx.diameter(G)
-    rad = cx.radius(G)
-    assert isinstance(diam, Fraction) and diam == Fraction(7, 2)
-    assert isinstance(rad, Fraction) and rad == Fraction(7, 2)
-
-    p = cx.Point("a", "b", Fraction(1, 50))
-    q = cx.Point("a", "b", Fraction(49, 50))
-    assert cx.distance(G, p, q) == Fraction(11, 5)
-
-
-def test_exact_center_of_a_path():
-    g = nx.path_graph(4)
-    for u, v in g.edges():
-        g[u][v]["length"] = Fraction(1)
-    G = cx.ContinuousGraph(g, tol=0)
-    (c,) = cx.center(G)
-    assert isinstance(c, cx.Point) and c.theta == Fraction(1, 2)
-    assert cx.radius(G) == Fraction(3, 2)

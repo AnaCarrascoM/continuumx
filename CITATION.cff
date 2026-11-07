@@ -1,11 +1,12 @@
 cff-version: 1.2.0
-message: "If you use continuumx, please cite the master's thesis it accompanies."
+message: "If you use continuumx, please cite both the software and the master's thesis it accompanies."
 title: "continuumx: a Python library for continuous graphs"
 type: software
 authors:
   - family-names: "Carrasco Martín"
     given-names: "Ana"
 version: "0.1.0"
+date-released: "2026-11-07"
 license: MIT
 repository-code: "https://github.com/AnaCarrascoM/continuumx"
 abstract: >-
@@ -17,14 +18,15 @@ keywords:
   - continuous graph
   - metric graph
   - networkx
-preferred-citation:
-  type: thesis
-  thesis-type: "Master's thesis"
-  title: "Computing Distances in Combinatorial and Continuous Graphs"
-  authors:
-    - family-names: "Carrasco Martín"
-      given-names: "Ana"
-  institution:
-    name: "Universidad de Sevilla"
-  year: 2026
-  month: 11
+references:
+  - type: thesis
+    thesis-type: "Master's thesis"
+    title: "Computing Distances in Combinatorial and Continuous Graphs"
+    authors:
+      - family-names: "Carrasco Martín"
+        given-names: "Ana"
+    institution:
+      name: "Universidad de Sevilla"
+    year: 2026
+    month: 11
+    notes: "Supervised by Delia Garijo Royo."

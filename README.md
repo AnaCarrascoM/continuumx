@@ -4,25 +4,26 @@
 
 `continuumx` is a Python library for **continuous graphs**, built on top of
 [NetworkX](https://networkx.org/). In a combinatorial graph, distances are
-measured only between vertices. In a continuous graph, each edge is identified
-with a segment whose length is given by its weight, and distances are measured
-between any two points of the graph. The continuous graph is an abstract metric
-space, obtained by gluing these segments at their endpoints; it need not lie in
-any Euclidean space.
+measured only between vertices. In a continuous graph, each edge is replaced by
+a segment of its length, and the segments are glued at their endpoints, so
+distances are measured between any two points of the graph, including points
+inside the edges.
 
-It implements the constructions and algorithms of the master's thesis
-*Computing Distances in Combinatorial and Continuous Graphs* (A. Carrasco
-Martín, Universidad de Sevilla, 2026). It is a **prototype**: version 0.1
-covers distance, eccentricity, diameter, radius and center, for arbitrary
-connected graphs with positive edge lengths.
+It accompanies the master's thesis *Computing Distances in Combinatorial and
+Continuous Graphs* (A. Carrasco Martín, Universidad de Sevilla, 2026), whose
+Chapter 5 describes it. It is a first version: for arbitrary connected graphs
+with positive edge lengths, it computes the distance between two points, the
+eccentricity of a point, and the diameter, the radius and the center of a
+continuous graph.
 
 ## Installation
 
-`continuumx` requires Python 3.10 or later and NetworkX 3.0 or later. Install it
-directly from the repository:
+`continuumx` requires Python 3.10 or later and NetworkX 3.0 or later. Version
+0.1.0, the one described in the master's thesis, can be installed directly from
+the repository:
 
 ```bash
-pip install git+https://github.com/AnaCarrascoM/continuumx
+pip install git+https://github.com/AnaCarrascoM/continuumx@v0.1.0
 ```
 
 ## Quick start
@@ -48,84 +49,91 @@ cx.center(G)                        # every point: one Segment per edge
 ```
 
 The triangle is a cycle of perimeter 7, so every point has eccentricity 7/2
-and the center is the whole graph, returned as one `Segment` per edge. It also
-shows two facts about points of the same edge that are easy to overlook:
+and the center is the whole graph, returned as one `Segment` per edge. The
+example also shows two facts about points of the same edge:
 
-* the distance between two points of the same edge is not the length of the
-  segment between them: a path may leave through one endpoint and return
-  through the other (`2.2`, not `4.8`);
-* the largest distance between two points of the same edge is not `ℓ(ab)` but
+* their distance need not be the length of the segment between them, since the
+  shortest route may leave the edge through one endpoint and return through the
+  other (`2.2`, not `4.8`);
+* the largest distance between two points of the edge `ab` is not `ℓ(ab)` but
   `(ℓ(ab) + d(a, b)) / 2`: here `3.5`, not `5`.
 
-The package namespace already says "continuous", so the parameters keep their
-NetworkX names: comparing the two settings is `nx.diameter(g)` against
-`cx.diameter(g)`.
+## Example
 
-## Examples
+[`examples/emergency_network.ipynb`](examples/emergency_network.ipynb) runs the
+code of Chapter 5 of the master's thesis on the weighted emergency network and
+shows its output: distances, eccentricity, diameter, radius and center, and how
+the continuous center differs from the discrete one.
 
-[`examples/emergency_network.ipynb`](examples/emergency_network.ipynb) walks
-through the package on the weighted emergency network, following Chapter 5 of
-the master's thesis: distances, eccentricity, diameter, radius and center, and
-how the continuous center differs from the discrete one.
+## Building a continuous graph
+
+A continuous graph is determined by the edge-weighted graph `(G, ℓ)` that
+defines it, so no new combinatorial data is needed. The graph is built with
+NetworkX as usual, with the length of each edge in the attribute `length`, and
+wrapped in a `ContinuousGraph`. Another attribute can be chosen with
+`ContinuousGraph(g, length="time")`, and an edge without it is given length 1.
+
+* **Checks.** The graph must be simple, undirected and connected, and every
+  length must be positive; otherwise an explicit error is raised.
+* **A view, not a copy.** `ContinuousGraph` refers to `g` without copying it
+  and provides no way of modifying it. It stores the distances between vertices
+  once they are computed, so `g` should not be modified afterwards. A plain
+  NetworkX graph can also be passed directly to any function of the package.
+* **Points.** A point is a triple `(u, v, θ)`: the edge `uv` and the parameter
+  `θ ∈ [0, 1]` measured from `u`. Points of a graph are built with
+  `G.point(u, v, theta=...)` or `G.point(u, v, offset=...)`, the latter giving
+  the distance `λ` from `u`, and `G.offset(p)` recovers `λ`. Every point is put
+  in canonical form, so `Point("b", "a", 0.25) == Point("a", "b", 0.75)`, and
+  points can be used as dictionary keys.
+* **Exact arithmetic.** Lengths may be `float` or `fractions.Fraction`. The
+  algorithms use only the four arithmetic operations and comparisons, so with
+  `Fraction` lengths, and `ContinuousGraph(g, tol=0)`, every distance and
+  parameter is an exact rational. Exact arithmetic is not imposed, since it is
+  considerably slower.
 
 ## What it computes
 
 | Function | Returns | Complexity |
 | --- | --- | --- |
-| `distance(G, p, q)` | `d(p, q)` between two points | `O(1)` |
-| `eccentricity_to_edge(G, p, u, v)` | the eccentricity of `p` relative to the edge `uv` | `O(1)` |
+| `distance(G, p, q)` | `d(p, q)` | `O(1)` |
 | `eccentricity(G, p)` | `ecc(p)` | `O(m)` |
-| `eccentricity_function(G, u, v)` | `θ ↦ ecc(x_θ)` as a piecewise-linear function | `O(m²)` |
-| `diameter(G)`, `diametral_pair(G)` | the diameter and one diametral pair | `O(nm log n + m²)` |
-| `local_radius(G, u, v)`, `local_center(G, u, v)` | the local radius and local center of one edge | `O(m²)` |
-| `radius(G)`, `center(G)` | the radius and the center | `O(nm log n + m³)` |
-| `tree_*`, `cycle_*` | closed forms for trees and cycles | `O(n)` |
+| `eccentricity_function(G, u, v)` | `ecc` along `uv` | `O(m²)` |
+| `diameter(G)`, `diametral_pair(G)` | `diam(𝒢)`, a diametral pair | `O(m²)` |
+| `local_radius(G, u, v)`, `local_center(G, u, v)` | `rad(uv)`, local center of `uv` | `O(m²)` |
+| `radius(G)`, `center(G)` | `rad(𝒢)`, `C(𝒢)` | `O(m³)` |
+| `tree_diameter`, `tree_radius`, `tree_center` | parameters of a continuous tree | `O(n)` |
+| `cycle_diameter`, `cycle_radius`, `cycle_center` | parameters of a continuous cycle | `O(n)` |
 
-`O(nm log n)` is the cost of the shortest paths between vertices (Dijkstra from
-every vertex), computed once and cached; the other costs assume they are
-available. The upper envelope is stored in a Python list, which is copied at
-each insertion, so an envelope costs `O(m²)` rather than the `O(m log m)` that
-an ordered structure (a 2–3 tree, as in Hansen, Labbé and Nicolas) would give.
+The costs assume that the distances between vertices are already computed,
+which takes `O(nm log n)` time with Dijkstra's algorithm from every vertex;
+they are computed once and stored. The functions for trees and cycles do not
+need them. In this first version the upper envelope is stored in a Python
+list, copied at each insertion, so an envelope costs `O(m²)` instead of the
+`O(m log m)` of the 2–3 tree of Algorithm 1 (Hansen, Labbé and Nicolas), and
+the radius and the center cost `O(m³)` instead of `O(m² log m)`.
 
-The center is returned as a list whose elements are either a `Point`, an
+The continuous center need not be finite: on a cycle it is the whole graph. It
+is therefore returned as a list whose elements are either a `Point`, an
 isolated central point, or a `Segment`, a stretch of an edge made of central
-points: unlike the discrete center, the continuous center is in general
-infinite (on a cycle it is the whole graph) and need not contain a vertex.
+points.
 
-## Design notes
+## Structure of the package
 
-**A view, not a subclass.** A continuous graph adds no combinatorial data to a
-graph: it is defined by a pair `(G, ℓ)`. So `ContinuousGraph` wraps an
-`nx.Graph` instead of subclassing it. Subclassing would inherit mutation, which
-cannot preserve the invariants (connectivity, positive lengths); wrapping gives
-a home for the shortest-path cache every continuous algorithm needs. Every
-function also accepts a plain `nx.Graph` and wraps it internally.
+```
+continuumx/
+  classes/      ContinuousGraph, Point, and Segment, used to return the center
+  structures/   hat functions, piecewise linear functions and upper envelopes
+  algorithms/   distance, eccentricity, diameter, radius, center, and families
+                (closed forms for trees and cycles)
+tests/          test suite
+examples/       the emergency network notebook
+```
 
-**Points carry `θ`, not `λ`.** A point is a triple `(u, v, θ)` with
-`θ ∈ [0, 1]` measured from `u`. The normalized parameter is *intrinsic*, since
-a triple can be validated without knowing the edge length, and it is the
-parametrization the theory uses. The absolute offset is `G.offset(p)`. Points
-are normalized on construction, so `Point("b", "a", 0.25) == Point("a", "b",
-0.75)` and `Point("a", "b", 0.0) == Point("a", "c", 0.0)`, and points are
-hashable.
-
-**One computational core.** Every parameter is a reading of the same object:
-the eccentricity along an edge is the upper envelope of `m + 1` *hat
-functions* (`continuumx.structures.piecewise`). The diameter is the largest
-ceiling; the radius is the smallest minimum; the center is where those minima
-are attained.
-
-**Exact arithmetic.** The core uses only the four arithmetic operations, `min`
-and `max`, with no square roots or other functions. With `fractions.Fraction`
-edge lengths every computed parameter is an exact rational and `tol=0` is safe,
-which matters for the center, whose structure is decided by equality tests.
-
-**Restrictions in 0.1.** As in the master's thesis, graphs are simple,
-undirected and connected, with positive edge lengths; multigraphs, self-loops
-and zero-length edges are rejected with an explicit error. Two parallel edges
-of different lengths would define a continuous cycle `C₂`, but the triple
-`(u, v, θ)` cannot name one of them; supporting them would mean adding an edge
-key to `Point`.
+The central part is `structures`. Every parameter is read off the hat
+functions of each edge: the diameter is the largest of their ceilings, the
+radius is the smallest of the minima of their upper envelopes, one for each
+edge, and the center is the set of points where these envelopes attain the
+radius.
 
 ## Development
 
@@ -138,39 +146,19 @@ cd continuumx
 pip install -e ".[dev]"
 ```
 
-### Project layout
+The test suite is run with `python -m pytest`, and it also runs automatically
+on every change. It compares the results with:
 
-```
-continuumx/
-  classes/      ContinuousGraph (an immutable view over nx.Graph), Point, Segment
-  structures/   PiecewiseLinear, HatFunction, upper_envelope: the computational core
-  algorithms/   distance, eccentricity, diameter, radius, center, families
-tests/          pytest suite
-examples/       notebooks walking through the package
-```
+1. the closed forms for trees and cycles;
+2. the worked examples of Chapter 4 of the master's thesis, with `Fraction`
+   lengths and zero tolerance;
+3. a brute-force computation: every edge is subdivided into `k` equal pieces
+   and NetworkX shortest paths are run on the result;
+4. the outputs printed in Chapter 5 and stored in the example notebook.
 
-### Testing
-
-```bash
-python -m pytest
-```
-
-The suite, which also runs the examples in the docstrings, validates the
-library in four ways:
-
-1. **An independent oracle.** Every edge is subdivided into `k` equal pieces and
-   plain NetworkX shortest paths are run on the result. Distances between
-   sampled points are then exact, and the sampled diameter and radius bracket
-   the true ones within `max_edge_length / k`.
-2. **Closed forms.** Trees (`diam(𝒯) = diam(T)`, `rad = diam/2`, center a single
-   point) and cycles (`diam = rad = Per/2`, center the whole graph).
-3. **Structural properties** on random graphs: the metric axioms,
-   `rad ≤ diam ≤ 2·rad`, linear scaling under a change of unit, and
-   **invariance under subdivision**: splitting an edge in two yields an
-   isometric continuous graph, so no parameter may change.
-4. **The master's thesis.** The worked examples of Chapter 4 are checked with
-   `Fraction` lengths and zero tolerance, and the outputs printed in Chapter 5
-   are checked literally (`tests/test_chapter5.py`).
+It also checks properties that must hold on any graph, such as the metric
+axioms, `rad ≤ diam ≤ 2·rad`, and invariance under subdivision of an edge
+(Remark 4.2).
 
 ## Future work
 
@@ -196,10 +184,19 @@ As listed in Section 5.8 of the master's thesis:
 
 ## Citation
 
-If you use `continuumx`, please cite the master's thesis it accompanies:
+If you use `continuumx`, please cite both the software and the master's
+thesis it accompanies:
 
 ```bibtex
-@mastersthesis{carrasco2026continuumx,
+@misc{carrasco2026continuumx,
+  author       = {Carrasco Martín, Ana},
+  title        = {continuumx: a {Python} library for continuous graphs},
+  year         = {2026},
+  howpublished = {\url{https://github.com/AnaCarrascoM/continuumx}},
+  note         = {Version 0.1.0}
+}
+
+@mastersthesis{carrasco2026distances,
   author = {Carrasco Martín, Ana},
   title  = {Computing Distances in Combinatorial and Continuous Graphs},
   school = {Universidad de Sevilla},

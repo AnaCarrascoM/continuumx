@@ -27,12 +27,10 @@ def test_full_session():
     # ------------------------------------------------------------------
     # 1. Build the continuous graph.
     # ------------------------------------------------------------------
-    g = nx.Graph()  # start with an empty graph.
-    for u, v, ell in EDGES:  # add edges to the graph and their lengths
+    g = nx.Graph()
+    for u, v, ell in EDGES:
         g.add_edge(u, v, length=F(ell))
-    G = cx.ContinuousGraph(
-        g, tol=0
-    )  # create a continuous graph with the given graph and tolerance
+    G = cx.ContinuousGraph(g, tol=0)
 
     assert G.number_of_nodes() == 5  # a,b,c,d,e
     assert G.number_of_edges() == 5  # ab, bc, be, cd, de
