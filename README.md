@@ -8,9 +8,9 @@ measured only between vertices. In a continuous graph, each edge is identified
 with a segment whose length is given by its weight, and distances are measured
 between any two points of the graph.
 
-It accompanies the master's thesis *Computing Distances in Combinatorial and
-Continuous Graphs* (A. Carrasco Martín, Universidad de Sevilla, 2026), whose
-Chapter 5 describes it. It is a first version: for arbitrary connected graphs
+It accompanies the master's thesis [*Computing Distances in Combinatorial and
+Continuous Graphs*](docs/thesis/computing-distances-thesis.pdf) (A. Carrasco
+Martín, Universidad de Sevilla, 2026), whose Chapter 5 describes it. It is a first version: for arbitrary connected graphs
 with positive edge lengths, it computes the distance between two points, the
 eccentricity of a point, and the diameter, the radius and the center of a
 continuous graph.
@@ -63,6 +63,12 @@ example also shows two facts about points of the same edge:
 code of Chapter 5 of the master's thesis on the weighted emergency network and
 shows its output: distances, eccentricity, diameter, radius and center, and how
 the continuous center differs from the discrete one.
+
+## Thesis and slides
+
+* [Master's thesis](docs/thesis/computing-distances-thesis.pdf) (PDF): the
+  theory behind the package; Chapter 5 describes `continuumx`.
+* [Defense slides](docs/slides/computing-distances-slides.pdf) (PDF).
 
 ## Building a continuous graph
 
@@ -126,6 +132,7 @@ continuumx/
                 (closed forms for trees and cycles)
 tests/          test suite
 examples/       the emergency network notebook
+docs/           the master's thesis and the defense slides (PDF)
 ```
 
 The central part is `structures`. Every parameter is read off the hat
